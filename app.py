@@ -153,14 +153,16 @@ def _load_smart_fog_rows() -> list[tuple[int, str, str]]:
 
 
 def _run_pipeline(args: list[str]):
-    """Run main.py as a subprocess, yielding stdout lines."""
+    """Run main.py as a subprocess, yielding stdout lines in real time."""
+    env = {**os.environ, "PYTHONUNBUFFERED": "1"}
     proc = subprocess.Popen(
-        [sys.executable, str(ROOT / "main.py")] + args,
+        [sys.executable, "-u", str(ROOT / "main.py")] + args,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        bufsize=1,
         cwd=str(ROOT),
-        env={**os.environ},
+        env=env,
     )
     for line in proc.stdout:
         yield line.rstrip()
@@ -215,13 +217,16 @@ with st.sidebar:
         "Article generation",
     ]
     _stages = _smart_fog_stages if client_display == "Smart Fog" else _veriheal_stages
-    _cur = st.session_state.current_stage_num
+    # Pipeline uses 7-stage numbering; Smart Fog skips 1 & 2 so offset by 2
+    _stage_offset = 2 if client_display == "Smart Fog" else 0
+    _cur_pipeline = st.session_state.current_stage_num  # pipeline's X/7 number
+    _cur_ui = max(0, _cur_pipeline - _stage_offset)     # mapped to UI list index
 
     st.caption("Pipeline stages")
     for _i, _stage in enumerate(_stages, start=1):
-        if st.session_state.is_running and _i == _cur:
+        if st.session_state.is_running and _i == _cur_ui:
             st.markdown(f"**→ {_i} · {_stage}**")
-        elif _i < _cur:
+        elif st.session_state.is_running and _i < _cur_ui:
             st.caption(f"✓ {_i} · {_stage}")
         else:
             st.caption(f"{_i} · {_stage}")
@@ -335,16 +340,17 @@ if generate and run_args and not st.session_state.is_running:
             if not line.strip():
                 continue
 
-            # Detect stage markers — format: "Stage X/Y" or "=== Stage X/Y ==="
-            _stage_match = re.search(r'Stage\s+(\d+)\s*/\s*(\d+)', line)
+            # Detect stage markers — pipeline always prints "Stage X / 7 — Name"
+            # inside a banner block. The stage name is on the indented line between ===.
+            _stage_match = re.search(r'Stage\s+(\d+)\s*/\s*(\d+)\s*[—-]+\s*(.*)', line)
             if _stage_match:
                 _cur_n = int(_stage_match.group(1))
                 _tot_n = int(_stage_match.group(2))
+                _stage_name = _stage_match.group(3).strip()
                 st.session_state.current_stage_num = _cur_n
                 _pct = (_cur_n - 1) / _tot_n
-                _stage_name = _stages[_cur_n - 1] if _cur_n <= len(_stages) else ""
                 progress_bar.progress(_pct, text=f"Stage {_cur_n}/{_tot_n} — {_stage_name}")
-                stage_label.markdown(f"**Stage {_cur_n}/{_tot_n} — {_stage_name}**")
+                stage_label.markdown(f"**⚙️ Stage {_cur_n}/{_tot_n} — {_stage_name}**")
                 continue
 
             if "===" in line:
