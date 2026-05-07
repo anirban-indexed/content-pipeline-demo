@@ -65,10 +65,29 @@ def add_hyperlink(paragraph, url: str, anchor_text: str):
     return hyperlink
 
 
-def _load_system_prompt() -> str:
-    sp_path = os.path.join(os.path.dirname(__file__), "..", "system_prompt.md")
+def _load_system_prompt(profile: dict) -> str:
+    sp_path = profile.get("_system_prompt_path", "")
+    if not sp_path or not os.path.exists(sp_path):
+        raise FileNotFoundError(f"System prompt not found: {sp_path}")
     with open(sp_path, "r", encoding="utf-8") as f:
         return f.read()
+
+
+def _load_article_rules(profile: dict) -> str:
+    """
+    Load client-specific article writing rules from clients/{client}/article_rules.md.
+    These rules are injected into the article generation user message and replace the
+    former hardcoded Veriheal voice/style/linking/disclaimer block.
+    Falls back to an empty string if not found — the system_prompt.md should cover the gap.
+    """
+    rules_path = os.path.join(
+        profile.get("_client_dir", ""),
+        "article_rules.md",
+    )
+    if os.path.exists(rules_path):
+        with open(rules_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return ""
 
 
 def _read_brief(brief_path: str) -> str:
@@ -119,20 +138,51 @@ def _build_user_message(
     keyword_data: dict,
     nlp_terms: dict,
     context_text: str,
+    profile: dict | None = None,
 ) -> str:
 
     primary_kw = keyword_data.get("primary_keyword", "N/A") or "N/A"
 
+    _target_wc = None
     if not nlp_terms.get("enabled") or not nlp_terms.get("terms"):
         nlp_block = "NeuronWriter integration pending. No NLP terms available."
     else:
         terms = nlp_terms["terms"]
-        target_wc = nlp_terms.get("target_word_count", "N/A")
+        _target_wc = nlp_terms.get("target_word_count")
+        target_wc_display = _target_wc or "N/A"
         terms_formatted = "\n".join([
             f"  - {t['term']}: {t['usage_range']} (used by {t['usage_pc']}% of top pages)"
             for t in terms
         ])
-        nlp_block = f"NeuronWriter suggested word count: {target_wc} (reference only — follow the word count recommended in the Phase 1 brief)\nNLP terms to use naturally (do not stuff):\n{terms_formatted}"
+        nlp_block = f"NeuronWriter target word count: {target_wc_display}\nNLP terms to use naturally (do not stuff):\n{terms_formatted}"
+
+    # Final safety net: if _target_wc still not set (NeuronWriter pending or API didn't return it),
+    # extract from brief text. The brief generator always writes "Target word count: NNN" in the
+    # NeuronWriter Guidance section, so this works regardless of API availability.
+    if not _target_wc:
+        _brief_wc_match = re.search(r"Target word count[:\s]+(\d+)", brief_text, re.IGNORECASE)
+        if _brief_wc_match:
+            _target_wc = int(_brief_wc_match.group(1))
+            print(f"  Word count ceiling: {_target_wc} words (extracted from brief)")
+
+    # Build word count ceiling instruction
+    if _target_wc:
+        _wc_ceiling = int(_target_wc * 1.1)
+        _wc_instruction = (
+            f"\n--- WORD COUNT CEILING — NON-NEGOTIABLE ---\n\n"
+            f"The NeuronWriter target for this article is {_target_wc} words. "
+            f"The article MUST NOT exceed {_wc_ceiling} words (10% tolerance). "
+            f"This is a hard ceiling, not a suggestion.\n\n"
+            f"Before writing each section, check its target word count in the brief "
+            f"(listed as 'Target words:' under each H2). Do not exceed it.\n\n"
+            f"When you must cut to meet the ceiling, cut in this order:\n"
+            f"1. Mechanism explanation (how the technology works) — cut to 2-3 sentences\n"
+            f"2. Background context and definitions\n"
+            f"3. Never cut: comparison data, trade-off analysis, industry application specifics, "
+            f"specifications with citations\n\n"
+        )
+    else:
+        _wc_instruction = ""
 
     # Extract internal links from brief text for explicit injection
     internal_links_block = "No internal links specified in brief."
@@ -148,7 +198,60 @@ def _build_user_message(
         except Exception:
             pass
 
-    return f"""You are now beginning Phase 2 — article generation for Veriheal.
+    _profile = profile or {}
+    _domain = _profile.get("domain", "")
+    _client_name = _profile.get("client_name", "Client")
+    _article_rules = _load_article_rules(_profile)
+    _is_net_new = article_data.get("is_net_new", False)
+
+    # Content plan context block — injected for net-new (content-plan) flows
+    if _is_net_new:
+        _funnel = article_data.get("content_plan_funnel", "not specified")
+        _cp_type = article_data.get("content_plan_type", "not specified")
+        _cluster = article_data.get("content_plan_cluster", "not specified")
+        _priority = article_data.get("content_plan_priority", "not specified")
+        _landing_page = article_data.get("content_plan_landing_page", "not specified")
+        _strategy_notes = article_data.get("content_plan_strategy_notes", "")
+        _ai_visibility_notes = article_data.get("content_plan_ai_visibility_notes", "")
+        _ai_block = (
+            f"\nAI Visibility Notes:\n{_ai_visibility_notes}\n"
+            if _ai_visibility_notes else ""
+        )
+        article_content_plan_block = (
+            f"\n--- CONTENT PLAN CONTEXT ---\n\n"
+            f"Funnel Stage: {_funnel}\n"
+            f"Content Type: {_cp_type}\n"
+            f"Cluster: {_cluster}\n"
+            f"Priority: {_priority}\n"
+            f"Associated Landing Page: {_landing_page}\n\n"
+            f"Strategy Notes:\n{_strategy_notes if _strategy_notes else '(not provided)'}\n"
+            + _ai_block
+        )
+    else:
+        article_content_plan_block = ""
+
+    # Build disclaimer block from profile
+    _disclaimers = _profile.get("disclaimers", [])
+    if _disclaimers:
+        _disclaimer_block = "\n\n".join(_disclaimers)
+        _disclaimer_instruction = (
+            f"--- DISCLAIMERS — COPY VERBATIM ---\n\n"
+            f"The following disclaimer(s) must appear at the end of the article body, "
+            f"after the CTA and before the FAQ. Copy them word-for-word — do not paraphrase, "
+            f"truncate, or omit any.\n\n"
+            + "\n\n".join(f"Disclaimer {i+1} (copy exactly):\n{d}" for i, d in enumerate(_disclaimers))
+        )
+    else:
+        _disclaimer_instruction = "(No disclaimers required for this client.)"
+
+    # Domain-specific URL prepend instruction
+    _url_prepend = (
+        f"If a URL below is a partial path (e.g. /blog/example), prepend https://www.{_domain}."
+        if _domain else
+        "If a URL below is a partial path, prepend the client domain."
+    )
+
+    return f"""You are now beginning Phase 2 — article generation for {_client_name}.
 
 --- PHASE 1 BRIEF ---
 
@@ -164,7 +267,7 @@ Primary keyword: {primary_kw}
 Current headings: {json.dumps([h['text'] for h in article_data.get('headings', [])], indent=2)}
 Body text (first 3000 chars):
 {article_data.get('body_text', '')[:3000]}
-
+{article_content_plan_block}
 --- NEURONWRITER NLP TERMS ---
 
 {nlp_block}
@@ -183,272 +286,15 @@ each one appears in the body. Missing any link is a QA failure.
 Use the EXACT anchor text and EXACT URL shown below — do not modify or invent URLs.
 Format every link precisely as [HYPERLINK: anchor text | url].
 Do not skip any link. Do not substitute your own URLs.
-If a URL below is a partial path (e.g. /blog/example), prepend https://www.veriheal.com.
+{_url_prepend}
 
 {internal_links_block}
 
---- VERIHEAL VOICE AND STYLE RULES ---
+{_article_rules}
 
-Follow these rules exactly when writing every sentence:
-- Open the article with a direct 1-2 sentence answer to the primary question.
-  Never start with "In this article..." or any preamble.
-- Write in second person ("you", "your") throughout. Never switch to "we" or "I".
-- Mix short punchy sentences with slightly longer explanatory ones. Never write
-  paragraphs where every sentence is the same length.
-- Use simple transitions: "This means...", "Here's why...", "The difference is...",
-  "The key is...". Never use "furthermore", "moreover", "in conclusion", "additionally".
-- Each section should flow into the next. End each H2 with a sentence that
-  bridges naturally to the following section.
-- FAQs must answer the question directly in the first sentence, then add one
-  line of context. No more.
-- Tables are encouraged to summarise comparisons and timelines.
-- Embed external links mid-sentence on specific factual claims,
-  not at the end of paragraphs.
-- Paragraphs must be 2-3 sentences. Hard maximum: 4 sentences per paragraph
-  in any section. Never use single-sentence paragraphs except for deliberate
-  emphasis, used sparingly.
-- INTRO AND CONCLUSION DENSITY: The intro and conclusion sections must each
-  be broken into separate paragraphs of no more than 3-4 sentences each.
-  A wall of text spanning 5+ sentences with no paragraph break is a
-  formatting failure in any section, but especially in intro and conclusion.
-- "Cannabis" is preferred in body copy. "Weed" and "marijuana" are acceptable
-  in titles, H1s, and H2s where the keyword demands it, and occasionally in
-  body copy for natural variation. Never use "pot", "stoner", or "black market".
-- Spell out all abbreviations on first use: "tetrahydrocannabinol (THC)",
-  "cannabidiol (CBD)", "cannabinol (CBN)", "tetrahydrocannabinolic acid (THCA)".
-- No em dashes (—). Use commas or restructure the sentence.
-- Oxford comma required: "a, b, and c".
-- Never use these phrases: "it's worth noting", "it's important to understand",
-  "in conclusion", "furthermore", "moreover", "delve", "comprehensive", "crucial",
-  "showcasing", "let's explore", "game-changer", "multifaceted", "nuanced",
-  "key takeaway", "it is essential".
-- Present perfect tense preferred where applicable.
-- Each paragraph must connect logically to the one before it — either
-  by developing the same argument, providing evidence for a claim in
-  the prior paragraph, introducing a contrasting point with an explicit
-  bridge, or advancing the narrative forward. Never write consecutive
-  paragraphs that each make an isolated standalone point with no
-  logical connection between them. This applies throughout the entire
-  article, not just in specific section types.
-- Sections should be 3-5 paragraphs.
-- Use the format recommended in the brief for each section. If no format is
-  specified, apply this logic:
-  - TABLE: use when comparing 3+ items across 2+ attributes, or showing
-    timelines, ranges, or side-by-side data. Always bold the header row.
-    Tables improve featured snippet chances for comparison queries.
-  - BULLET LIST: use when listing 3+ factors, symptoms, causes, or items
-    where order does not matter. Each bullet should be 1-2 sentences.
-    Bullet lists improve featured snippet chances for "what are" queries.
-  - NUMBERED LIST: use when describing sequential steps or a ranked process.
-  - PARAGRAPHS: use for explanations, context, narrative, and sections where
-    ideas build on each other and cannot be reduced to a list.
-  - Never write a paragraph that is just a list of items separated by commas
-    when a bullet list would be clearer.
-  - Never use a table when there are only 2 items to compare.
-- When the brief specifies FORMAT: Use bullet lists for a section,
-  you must use bullet list formatting for that section — not prose
-  paragraphs. This is mandatory. A section that says FORMAT: bullet
-  list must contain actual bullet points, not sentences strung together.
+{_disclaimer_instruction}
 
-  Correct example for Edible Storage Guidelines:
-    Intro sentence explaining the category.
-    • Store below 70°F to prevent THC degradation and bacterial growth
-    • Baked goods maintain potency for 2-3 months in cool, dry storage
-    • Chocolates and gummies lose potency faster — keep below 75°F
-
-  Wrong example:
-    A paragraph that says all the same things in flowing sentences
-    with no bullets.
-- When a section covers 3 or more distinct named items (factors,
-  reasons, steps, types, signs), each with its own explanation,
-  use a numbered or bulleted list with a bold lead term — even if
-  the brief says FORMAT: paragraphs. Prose paragraphs are only
-  appropriate when the content flows as connected narrative where
-  one idea builds on the next.
-
-  Correct example for a factors section:
-    Opening sentence summarising the point.
-    1. Heat: This remains the primary culprit. UV light accelerates
-       the process...
-    2. Air exposure: Oxygen oxidises THC through a different pathway...
-    3. Humidity: Problems occur at both extremes...
-    4. Time: Gradual degradation occurs even under perfect conditions...
-
-  Wrong example:
-    Four separate prose paragraphs each starting with the factor
-    name, with no list structure.
-
---- LINKING RULES ---
-
-For internal links: you MUST embed every internal link from the INTERNAL LINKS
-section above using this exact format — no exceptions:
-  [HYPERLINK: anchor text | full veriheal.com url]
-Do NOT use markdown link syntax like [anchor text](url). The pipeline only
-renders [HYPERLINK: anchor text | url] format. Markdown links will be lost.
-For each link, find an existing sentence in the article that discusses
-the same topic and embed the link mid-sentence on a natural phrase —
-never at the start of a sentence, and never by writing a new sentence
-around the anchor text. The anchor text must flow naturally within the
-surrounding prose. Rewrite the surrounding sentence if needed to make
-the anchor text fit naturally, but keep the meaning the same.
-
-Good example: "Understanding how to [properly store cannabis](url) helps
-you maintain potency over time."
-Bad example: "[How to properly store cannabis](url) involves matching
-container type to storage duration."
-
-For external links: you MUST include at least 2-3 external links to
-US scientific or medical sources embedded mid-sentence on specific factual claims.
-Acceptable sources only: PubMed (pubmed.ncbi.nlm.nih.gov), NIH (nih.gov),
-CDC (cdc.gov), FDA (fda.gov), NIDA (nida.nih.gov), Mayo Clinic (mayoclinic.org),
-Johns Hopkins (hopkinsmedicine.org), Harvard Health (health.harvard.edu),
-JAMA (jamanetwork.com), PMC (pmc.ncbi.nlm.nih.gov).
-Never link to Leafly, Leafwell, NuggMD, GreenHealthDocs, Weedmaps, or random blogs.
-Never link to non-US health sources.
-IMPORTANT: External links must point to a specific article, study, or page —
-never to a bare domain like pubmed.ncbi.nlm.nih.gov with no path.
-A valid PubMed link looks like: https://pubmed.ncbi.nlm.nih.gov/12345678/
-A valid PMC link looks like: https://pmc.ncbi.nlm.nih.gov/articles/PMC1234567/
-If you know a specific study exists but cannot confirm the exact URL,
-write: [HYPERLINK: anchor text | UNCONFIRMED] — never use a bare domain as the URL.
-Format confirmed links as: [HYPERLINK: anchor text | full specific url]
-The string '[URL REQUIRED]' must never appear in the article body. It is not
-an acceptable placeholder under any circumstances. If a URL is unknown, use
-[HYPERLINK: anchor | UNCONFIRMED] only.
-OMITTING EXTERNAL LINKS ENTIRELY IS A CRITICAL FAILURE. The article will
-fail QA and be rejected if no external links are present. Uncertainty about
-the exact URL is not a reason to skip a link — it is the reason the UNCONFIRMED
-marker exists. Every article on cannabis, herbs, or health topics has
-supporting research. Find 2-3 factual claims in the article body and attach
-an external link to each, using UNCONFIRMED if the URL cannot be confirmed.
-Do not skip. Do not defer. Write the link.
-UNCONFIRMED anchors must still be descriptive: if the year is unknown,
-write "research suggesting [specific finding]" — not a restatement of
-the surrounding sentence. Bad: [HYPERLINK: linalool has anxiolytic
-properties | UNCONFIRMED]. Good: [HYPERLINK: research suggesting linalool
-reduces anxiety | UNCONFIRMED]. The anchor must identify the claim, not
-echo the prose.
-Published examples of correct link embedding:
-
-Internal links:
-  "the [HYPERLINK: way you use cannabis | https://www.veriheal.com/blog/six-things-you-can-do-with-cannabis-besides-smoking-it/] plays a central role in how it may affect aging"
-  "Cannabis is often studied for its role in [HYPERLINK: managing pain conditions | https://www.veriheal.com/blog/terpenes/pain-inflammation-relief/] linked to aging"
-  "you can [HYPERLINK: find a doctor today | https://www.veriheal.com/find-a-medical-marijuana-doctor/] to get support suited to your needs"
-
-External links:
-  "A [HYPERLINK: 2022 study | https://pubmed.ncbi.nlm.nih.gov/36289503/] found that heavy users showed accelerated epigenetic aging"
-  "Research shows that smoking [HYPERLINK: accelerates visible skin aging | https://pubmed.ncbi.nlm.nih.gov/11966688/] by reducing collagen production"
-  "THC [HYPERLINK: impacts memory, coordination, and attention | https://pmc.ncbi.nlm.nih.gov/articles/PMC7608353/], which are often noticeable in social settings"
-
-Rules these examples demonstrate:
-  - Anchor text describes the destination topic in 2–5 words
-  - Link sits mid-sentence on the phrase most relevant to the destination
-  - External links attach to the study descriptor ("2022 study") or the specific claim, never standalone
-  - Never "click here", never a bare URL, never at the start of a sentence
-
-INTERNAL LINK ANCHOR TEXT: Anchor text must accurately reflect the destination
-page topic. If the destination is about choosing rolling papers, the anchor must
-say something like "choosing the right rolling paper" — not "rolling papers
-alternatives" which implies a different intent. Before finalising anchor text,
-verify: does this phrase describe what the linked page is actually about?
-Anchor text must read as natural prose in the sentence — never use slug-derived
-phrases or grammatically broken text. Write anchor text as if the link were not
-there and the sentence still reads correctly.
-
-EXTERNAL LINK PLACEMENT AND ANCHOR TEXT:
-
-External links must be contextually earned — only attach a link where
-the surrounding sentence makes a specific factual claim that a study
-or authoritative source would directly support. Never add an external
-link just to meet the minimum count. A claim like "lavender contains
-linalool which may reduce anxiety" earns a link. A general statement
-like "herbs have been used for centuries" does not.
-
-Anchor text must identify the specific claim being cited with enough
-detail that an editor can find the correct source. Required format:
-[publication year if known] + [key finding or population studied].
-Examples of acceptable anchors:
-- "a 2019 PMC review on terpene interactions and the entourage effect"
-- "a 2021 NIH study linking daily tobacco use to stroke risk in adults"
-- "research linking linalool to reduced anxiety in clinical settings"
-
-If the year is unknown, describe the finding specifically enough that
-the source is identifiable. Vague anchors like "research suggests",
-"studies show", or "smoking research" are never acceptable.
-
-Mark uncertain URLs as UNCONFIRMED but always write the anchor text
-as if the editor needs to use it to find the source themselves.
-
-Never write '[URL REQUIRED]' anywhere in the article. Use
-[HYPERLINK: anchor | UNCONFIRMED] only.
-
-DUPLICATE LINKS: Each unique URL from the brief may only appear once in the
-article. If the brief lists the same URL more than once, pick the single most
-contextually relevant sentence and embed it there only. Do not embed the same
-URL in multiple places.
-
-LINK PLACEMENT: Do not place internal or external links in the conclusion
-section — the conclusion may only contain the CTA link to
-veriheal.com/find-a-medical-marijuana-doctor/. All other internal and external
-links must appear in body sections: herb descriptions, how-to sections, effects
-explanations, comparison paragraphs, and FAQ answers. Links in FAQ answers are
-acceptable. Never hyperlink FAQ question text — links belong in FAQ answers
-only, not on the question itself.
-
-STRAIN-SPECIFIC CONTENT — CITATION RULES:
-For articles about specific cannabis strains (identified by a strain
-name in the H1 or primary keyword), apply the following rules to
-all factual claims:
-
-- Breeder and lineage claims (e.g. "bred by Archive Seed Bank",
-  "OG Kush x Girl Scout Cookies cross") are common knowledge in
-  the cannabis community and do not require citation. Write them
-  as established fact without attribution language ("studies show",
-  "research suggests", "according to").
-
-- Terpene profile claims (e.g. "dominant in myrcene and caryophyllene")
-  are general strain profile information and do not require citation.
-  Do not write exact terpene percentages (e.g. "contains 1.2% myrcene")
-  — these vary by batch and producer and cannot be sourced to a single
-  URL. Write terpene presence in general terms only.
-
-- Cannabinoid content claims (e.g. "THC levels typically range from
-  25-30%") vary by producer and harvest and cannot be pinned to an
-  authoritative source. Write cannabinoid ranges as approximate
-  ("typically ranges", "averages around") without attribution.
-
-- Reserve citation-requiring language ("studies show", "research
-  indicates", "according to [Org]", percentages presented as
-  precise statistics) for claims that can genuinely be sourced to
-  PubMed, NIH, CDC, or equivalent — such as general effects of
-  specific terpenes on mood or physiology, or cannabinoid interaction
-  research. These claims are citeable; strain-specific data is not.
-
-- Do not write a factual claim in citation-requiring language if the
-  underlying fact is strain-specific. Reframe as general knowledge
-  or omit the attribution signal entirely.
-
---- SLUG FIDELITY — NON-NEGOTIABLE ---
-
-The brief specifies an original URL slug. That slug defines the
-article's primary subject. You must write the entire article —
-H1, every H2, intro, body sections, FAQ — about that specific
-subject.
-
-If the slug says 'how-to-recover-from-edibles':
-- Every H2 must be about edibles recovery specifically
-- The intro must frame the edibles context in the first sentence
-- General cannabis content is only acceptable as supporting context,
-  never as the primary frame
-- The word from the slug subject ('edibles' in this case) must
-  appear in the H1, the intro, and the majority of H2s
-
-If the primary keyword is broader than the slug subject, ignore
-the broader framing and write to the slug subject. The keyword
-is for search targeting only. The slug is what the article
-is about.
-
---- STRUCTURE ---
+{_wc_instruction}--- STRUCTURE ---
 
 You must only write sections explicitly listed in the brief under
 'Sections to Add' and 'Sections to Change', plus the existing
@@ -477,6 +323,10 @@ H2 AND H3 PLACEMENT LABELS: Every H2 and H3 must carry a placement label derived
 
 PARAGRAPH FLOW: Every H2 and H3 section must open with at least one full body paragraph before any table, bullet list, or numbered list appears. This paragraph should introduce the section topic and connect it to what came before. Never place a table or list as the first element directly after a heading.
 
+NO PREVIEW REDUNDANCY: Opening paragraphs must NOT restate or preview the data that bullet clusters or lists immediately below will deliver. The opening paragraph's job is to establish WHY this dimension matters for the reader's decision — not to summarise the conclusions that the structured content already shows. If you find yourself writing "Steam systems require more maintenance while dry fog extends service intervals..." before a bullet cluster that says exactly that, delete the prose and keep only the bullet cluster. Every claim must appear once. Writing it in prose and then again in a bullet is redundancy, not depth.
+
+COMPARISON FORMATTING — BULLET CLUSTERS: When the brief calls for a comparison of 3 or more items across multiple attributes (technology types, product categories, equipment classes, or any multi-row comparison a table would show), format each comparison dimension as a bullet cluster. A bullet cluster places all compared items under one named dimension heading. Format each bullet as: **Item Name:** one sentence. The bold item name and colon are mandatory on every bullet — no exceptions, no item may be written without **bold**: format. Use a colon after the bold name — not a hyphen, not an em dash. Rules: (1) every compared item must appear in every cluster — no gaps; (2) one sentence per bullet — two sentences makes it a paragraph, not a scannable comparison; (3) the comparison dimensions must be established at the start of the section and held consistently — do not introduce new dimensions mid-section or vary which items get covered. The brief will specify the comparison criteria — use exactly those as cluster dimensions, do not substitute. For 2-item comparisons, use structured paragraphs instead of bullet clusters.
+
 --- INSTRUCTION ---
 
 Do NOT write a metadata table. The pipeline generates it automatically from
@@ -486,10 +336,13 @@ directly with the H1.
 Execute the brief exactly. Write every section as specified.
 Do not output any commentary, voice calibration notes, compliance checks,
 or chat window blocks. Output the article and nothing else.
-Begin with H1, then body sections in order, then both disclaimers, then FAQ.
-CTA PLACEMENT: The CTA (call to action with the find-a-doctor link) must appear
-immediately after the final body section and before the FAQ and disclaimer notes.
-Never place the CTA after the FAQ.
+Begin with H1, then body sections in order, then disclaimers (if required), then FAQ.
+CTA PLACEMENT: The CTA (call to action) must appear immediately after the
+final body section and before the disclaimers and FAQ. Never place the CTA after the FAQ.
+
+CTA HYPERLINK FORMAT: Every CTA that invites the reader to contact, request a quote, or speak with an engineer MUST use the [HYPERLINK: anchor text | url] format on the anchor phrase. The anchor text alone becomes the clickable link — the surrounding sentence provides context. Example of correct format:
+  Speak with a Smart Fog engineer about humidification requirements for your facility by visiting [HYPERLINK: speak with a Smart Fog engineer | https://www.smartfog.com/contact-us/].
+Writing the CTA as plain prose with no HYPERLINK marker is a formatting failure — the link will not be embedded in the document.
 """
 
 
@@ -637,6 +490,8 @@ def _run_qa_check(
     confirmed_external_count: int,
     bare_domain_links: list,
     client: anthropic.Anthropic,
+    profile: dict | None = None,
+    article_rules: str = "",
 ) -> dict:
     """
     Runs a QA check on the generated article against the brief.
@@ -673,48 +528,31 @@ def _run_qa_check(
         for t in terms[:20]
     ]) if terms else "No NLP terms available."
 
-    blocked_domains = [
+    _profile = profile or {}
+    _client_name = _profile.get("client_name", "Client")
+    blocked_domains = list(_profile.get("blocked_external_sources", [
         "leafwell.com", "nuggmd.com", "leafly.com",
         "greenhealthdocs.com", "docmj.com", "quickmedcards.com",
         "weedmaps.com",
-    ]
-    acceptable_sources = [
+    ]))
+    acceptable_sources = list(_profile.get("allowed_external_sources", [
         "pubmed.ncbi.nlm.nih.gov", "nih.gov", "cdc.gov", "fda.gov",
         "nida.nih.gov", "mayoclinic.org", "hopkinsmedicine.org",
         "health.harvard.edu", "jamanetwork.com", "nejm.org",
         "thelancet.com", "pmc.ncbi.nlm.nih.gov",
-    ]
+    ]))
 
-    qa_prompt = f"""You are a senior editor at Veriheal conducting a QA audit of an optimised article.
-Evaluate the article against the brief and Veriheal's editorial standards. Return a structured QA report.
-
---- BRIEF ---
-{brief_text}
-
---- ARTICLE ---
-{article_text}
-
---- NLP TERMS ---
-{terms_summary}
-
---- BLOCKED EXTERNAL DOMAINS ---
-{chr(10).join(blocked_domains)}
-
---- ACCEPTABLE EXTERNAL SOURCES ---
-Only these domains are acceptable for external links. All others are a critical failure:
-{chr(10).join(acceptable_sources)}
-Or equivalent US medical/scientific institutions (.gov, .edu, peer-reviewed journals).
-External links must be US-relevant sources. UK NHS, Australian health sites, and non-US
-government sources are not acceptable.
-Random blogs, cannabis lifestyle sites, and non-scientific sources are not acceptable.
-
---- VERIHEAL VOICE AND STYLE STANDARDS ---
+    # Use client-specific article rules when available; fall back to hardcoded Veriheal standards
+    if article_rules:
+        _voice_standards_block = f"--- {_client_name.upper()} VOICE AND STYLE STANDARDS ---\n\n{article_rules}"
+    else:
+        _voice_standards_block = f"""--- {_client_name.upper()} VOICE AND STYLE STANDARDS ---
 
 Voice:
 - Conversational but credible. Plain language. Second person ("you") throughout.
 - Short paragraphs: 2-3 sentences ideal, maximum 5 sentences.
 - Cause-and-effect connections explained simply, not academically.
-- Patient-focused and helpful. Not robotic or mechanical.
+- Helpful and informative. Not robotic or mechanical.
 - Down-to-earth tone. Never stiff or corporate.
 
 Style rules:
@@ -731,31 +569,53 @@ Style rules:
   "game-changer", "furthermore", "moreover", "showcasing", "let's explore".
 
 Links:
-- At least one internal link (to a Veriheal URL) must be present.
+- At least one internal link (to a {_client_name} URL) must be present.
 - At least one external link to an acceptable source must be present.
 - No links to blocked competitor domains.
-- External links must go to US-relevant scientific/medical sources only.
-- Flag any [HYPERLINK: anchor | UNCONFIRMED] markers as needing resolution.
+- External links must go to appropriate authoritative sources only.
+- Flag any [HYPERLINK: anchor | UNCONFIRMED] markers as needing resolution."""
+
+    qa_prompt = f"""You are a senior editor at {_client_name} conducting a QA audit of an optimised article.
+Evaluate the article against the brief and {_client_name}'s editorial standards. Return a structured QA report.
+
+--- BRIEF ---
+{brief_text}
+
+--- ARTICLE ---
+{article_text}
+
+--- NLP TERMS ---
+{terms_summary}
+
+--- BLOCKED EXTERNAL DOMAINS ---
+{chr(10).join(blocked_domains)}
+
+--- ACCEPTABLE EXTERNAL SOURCES ---
+Only these domains are acceptable for external links. All others are a critical failure:
+{chr(10).join(acceptable_sources)}
+Or equivalent authoritative institutions (.gov, .edu, peer-reviewed journals).
+
+{_voice_standards_block}
 
 --- QA INSTRUCTIONS ---
 
 Check the following and report on each:
 
 CRITICAL CHECKS (failure blocks article saving):
-1. DISCLAIMER: Is the standard Veriheal medical disclaimer present before the FAQ?
-2. INTERNAL LINKS: Are all internal links from the brief present with correct anchor text and Veriheal URLs?
+1. DISCLAIMER: Are all required disclaimers present in the article (if any are required for this client)?
+2. INTERNAL LINKS: Are all internal links from the brief present with correct anchor text and URLs?
 3. EXTERNAL LINKS - BLOCKED DOMAINS: Do any external links go to blocked competitor domains?
-4. EXTERNAL LINKS - SOURCE QUALITY: Do any external links go to random blogs, non-scientific sources, or non-US sources?
+4. EXTERNAL LINKS - SOURCE QUALITY: Do any external links go to random blogs, non-authoritative sources, or inappropriate sources?
 5. METADATA TABLE: Is the metadata table present with revised title, meta description, slug, and H1?
 6. EXTERNAL LINK MANDATORY: Search the article text for any [HYPERLINK:
-anchor | url] where the url does NOT contain "veriheal.com". This includes
+anchor | url] where the url does NOT contain "{_profile.get('domain', 'client-domain.com')}". This includes
 urls that say "UNCONFIRMED". If you find even ONE such marker — confirmed
 url or UNCONFIRMED — this check PASSES. Only mark this as a CRITICAL
 FAILURE if there is literally no [HYPERLINK:] marker at all with a
-non-Veriheal url (including UNCONFIRMED). Do not fail this check
+non-client url (including UNCONFIRMED). Do not fail this check
 because a link is UNCONFIRMED — UNCONFIRMED counts as present.
 7. MINIMUM INTERNAL LINK: Does the article have at least one confirmed
-internal Veriheal link embedded as a hyperlink?
+internal client link embedded as a hyperlink?
 
 NON-CRITICAL CHECKS (flagged but does not block saving):
 8. UNCONFIRMED LINKS: Only flag a link as UNCONFIRMED if the url
@@ -766,10 +626,10 @@ separately by a pre-check and do not need to be flagged here.
 9. WORD COUNT: Estimate the article word count. Is it within the brief's recommended range?
 10. SECTIONS TO CHANGE: Were all sections in the brief's Sections to Change addressed?
 11. SECTIONS TO ADD: Were all new sections in the brief present and placed correctly?
-12. EM DASHES: Flag any em dashes (—) found in the article body.
-13. AI PHRASES: Flag any AI-sounding phrases from the list above.
+12. EM DASHES: Flag any em dashes (—) found in the article body paragraphs. Do NOT flag em dashes in headings derived from the content plan title.
+13. AI PHRASES: Flag any AI-sounding phrases from the voice standards list above found in BODY PARAGRAPHS ONLY. Do not flag words that appear in H1, H2, H3 headings, or the metadata table — headings come from the content plan and are not generated prose. Only flag body paragraph occurrences.
 14. PARAGRAPH LENGTH: Flag any sections with excessive single-sentence paragraphs.
-15. ABBREVIATIONS: Were THC, CBD, CBN, and other abbreviations spelled out on first use?
+15. ABBREVIATIONS: Flag any technical abbreviations that were not spelled out on first use in body copy (relevant to the client's industry — ignore cannabis-specific abbreviations for non-cannabis clients).
 16. VOICE QUALITY: Does the article read as conversational, patient-focused, and plain-language? Flag any sections that feel mechanical, academic, or robotic.
 17. NLP TERMS: Are the NLP terms used naturally without stuffing? Flag any obvious forced insertions.
 18. SLANG: Flag any use of "pot", "stoner", or "black market". Note that "weed"
@@ -899,7 +759,7 @@ def _fill_table_cell(cell, text: str) -> None:
         idx += 1
 
 
-def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_report: str = "") -> None:
+def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_report: str = "", client_name: str = "Content") -> None:
     """
     Parse Claude's article output and write it to a .docx file.
     Converts [HYPERLINK: anchor | url] markers into live embedded links.
@@ -935,7 +795,7 @@ def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_repor
     doc = Document()
 
     # Metadata header
-    title_para = doc.add_heading("VERIHEAL OPTIMISED ARTICLE", level=1)
+    title_para = doc.add_heading(f"{client_name.upper()} OPTIMISED ARTICLE", level=1)
     title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
     doc.add_paragraph(f"URL: {url}")
     doc.add_paragraph(f"Generated: {datetime.now().strftime('%d %B %Y, %H:%M')}")
@@ -1486,6 +1346,29 @@ def _resolve_external_citations(
             if any(blocked in url for blocked in _BLOCKED):
                 continue
 
+            # Verify URL is live (returns 200) before accepting it.
+            # Bare-domain URLs (no real path) are rejected immediately — they
+            # signal the citation specialist defaulted to a homepage.
+            try:
+                from urllib.parse import urlparse as _up
+                _parsed = _up(url)
+                if _parsed.path.strip("/") == "":
+                    print(f"  Citation lookup: bare-domain URL rejected — {url}")
+                    continue
+                import requests as _req
+                _head = _req.head(url, timeout=6, allow_redirects=True,
+                                  headers={"User-Agent": "Mozilla/5.0"})
+                if _head.status_code not in (200, 301, 302, 303):
+                    # Some servers block HEAD — try GET as fallback
+                    _get = _req.get(url, timeout=6, allow_redirects=True,
+                                    headers={"User-Agent": "Mozilla/5.0"}, stream=True)
+                    if _get.status_code not in (200, 301, 302, 303):
+                        print(f"  Citation lookup: URL returned {_get.status_code} — keeping UNCONFIRMED.")
+                        continue
+            except Exception as _ve:
+                print(f"  Citation lookup: could not verify {url} ({_ve}) — keeping UNCONFIRMED.")
+                continue
+
             resolved += 1
 
             if claim["type"] == "unconfirmed":
@@ -1544,10 +1427,136 @@ def _resolve_external_citations(
     return article_text
 
 
+def _normalize_bullet_cluster_bold(article_text: str) -> str:
+    """
+    Deterministic pass: enforce **Item Name:** bold on every bullet cluster line.
+
+    A bullet cluster line is a list item (- or •) where:
+      - The text before the first colon is 1-6 words and not yet bold-wrapped.
+      - The colon is followed by a space and then sentence content (i.e. it is a
+        label colon, not a URL colon or mid-sentence colon).
+
+    Transforms:
+      - Dry fog systems: Achieve...       →  - **Dry fog systems:** Achieve...
+      - Ultrasonic technology: Delivers...→  - **Ultrasonic technology:** Delivers...
+
+    Leaves already-bold lines untouched:
+      - **Steam humidification:** ...     →  unchanged
+    """
+    import re
+
+    fixed = 0
+    lines = article_text.split("\n")
+    result = []
+    for line in lines:
+        # Match bullet lines: optional whitespace, bullet marker, optional space, content
+        m = re.match(r'^(\s*[-•]\s+)(.*)', line)
+        if m:
+            indent = m.group(1)
+            content = m.group(2)
+            # Skip if already starts with bold marker
+            if not content.startswith("**"):
+                # Look for a label colon: 1-6 words then ": " (not "://" for URLs)
+                label_m = re.match(r'^([A-Za-z][^:\n]{2,50}):\s+(\S)', content)
+                if label_m:
+                    label = label_m.group(1).rstrip()
+                    word_count = len(label.split())
+                    # Only bold short labels (item names), not long prose fragments
+                    if 1 <= word_count <= 6:
+                        new_content = f"**{label}:** " + content[len(label) + 2:]
+                        line = indent + new_content
+                        fixed += 1
+        result.append(line)
+
+    if fixed:
+        print(f"  Bullet cluster normaliser: bolded {fixed} unformatted item name(s).")
+    return "\n".join(result)
+
+
+def _resolve_cta_links(article_text: str, profile: dict) -> str:
+    """
+    Post-processing pass: find CTA anchor phrases in the article body that were
+    written as plain prose (no HYPERLINK marker) and wrap them in the correct
+    [HYPERLINK: anchor | url] format.
+
+    The CTA URL is read from the client profile's cta_contact_url field, falling
+    back to https://www.smartfog.com/contact-us/ for Smart Fog and
+    https://veriheal.com/get-card/ for Veriheal. Only applies to sentences that
+    contain a clear reader-action invitation — not every mention of Smart Fog.
+
+    Patterns are matched case-insensitively. A phrase is only wrapped if it is
+    NOT already inside a [HYPERLINK: ... ] marker.
+    """
+    import re
+
+    cta_url = (
+        profile.get("cta_contact_url")
+        or profile.get("content_plan", {}).get("cta_contact_url")
+        or ""
+    )
+    if not cta_url:
+        # Fallback by client name
+        client_name = profile.get("client_name", "").lower()
+        if "smart" in client_name or "fog" in client_name:
+            cta_url = "https://www.smartfog.com/contact-us/"
+        else:
+            return article_text  # No known CTA URL for this client — skip
+
+    domain = profile.get("domain", "")
+
+    # Client-specific CTA anchor patterns, ordered most-specific to least-specific.
+    # Veriheal patterns cover doctor-finding and MMJ card CTAs.
+    # Smart Fog patterns cover assessment, consultation, and engineer CTAs.
+    if "veriheal" in domain:
+        _CTA_ANCHORS = [
+            r"find a (?:qualified |licensed |medical marijuana |cannabis )?doctor[^,.\n]*",
+            r"connect with a (?:qualified |licensed |cannabis |medical marijuana )?doctor[^,.\n]*",
+            r"speak with a (?:qualified |licensed |cannabis |medical marijuana )?(?:doctor|physician)[^,.\n]*",
+            r"get (?:your )?(?:medical marijuana|MMJ|cannabis) card[^,.\n]*",
+            r"apply for (?:your )?(?:medical marijuana|MMJ|cannabis) card[^,.\n]*",
+            r"schedule (?:a|your) (?:free )?(?:medical marijuana |cannabis )?(?:evaluation|appointment|consultation)[^,.\n]*",
+            r"book (?:a|your) (?:free )?(?:medical marijuana |cannabis )?(?:evaluation|appointment|consultation)[^,.\n]*",
+        ]
+    else:
+        # Smart Fog and generic fallback
+        _CTA_ANCHORS = [
+            r"request a (?:free )?(?:system )?assessment[^,.\n]*",
+            r"speak with a Smart Fog engineer[^,.\n]*",
+            r"get a (?:humidification )?specification review[^,.\n]*",
+            r"contact (?:a )?Smart Fog (?:engineers?|team)[^,.\n]*",
+            r"request a (?:free )?(?:humidification )?consultation[^,.\n]*",
+            r"request a (?:free )?quote[^,.\n]*",
+            r"schedule a (?:free )?(?:system )?assessment[^,.\n]*",
+        ]
+
+    resolved = 0
+    for pattern in _CTA_ANCHORS:
+        for m in re.finditer(pattern, article_text, re.IGNORECASE):
+            phrase = m.group(0).rstrip(" .,;:")
+            start = m.start()
+            # Skip if already inside a [HYPERLINK: ... ] block
+            preceding = article_text[max(0, start - 12):start]
+            if "[HYPERLINK:" in preceding:
+                continue
+            # Skip if the phrase itself contains a HYPERLINK marker already
+            if "[HYPERLINK:" in phrase:
+                continue
+            replacement = f"[HYPERLINK: {phrase} | {cta_url}]"
+            article_text = article_text[:start] + replacement + article_text[start + len(phrase):]
+            resolved += 1
+            print(f"  CTA resolver: linked '{phrase}' → {cta_url}")
+            break  # Re-scan from scratch after each replacement to keep offsets valid
+
+    if resolved == 0:
+        print("  CTA resolver: no unlinked CTA phrases found.")
+    return article_text
+
+
 def _embed_missing_links(
     article_text: str,
     brief_text: str,
     client: anthropic.Anthropic,
+    domain: str = "veriheal.com",
 ) -> str:
     """
     Second-pass revision: detects internal links specified in the brief that
@@ -1573,9 +1582,9 @@ def _embed_missing_links(
                 parts = [p.strip() for p in stripped.split("|")]
                 if len(parts) >= 2:
                     anchor, url_val = parts[0], parts[1]
-                    # Normalise relative paths to full Veriheal URLs
+                    # Normalise relative paths to full URLs
                     if url_val.startswith("/"):
-                        url_val = "https://www.veriheal.com" + url_val
+                        url_val = f"https://www.{domain}" + url_val
                     if anchor and url_val and url_val.startswith("http"):
                         link_pairs.append((anchor, url_val))
 
@@ -1624,9 +1633,9 @@ Rules:
   only, not on the question itself.
 
 Published examples of correct embedding:
-  "the [HYPERLINK: way you use cannabis | https://www.veriheal.com/blog/six-things-you-can-do-with-cannabis-besides-smoking-it/] plays a central role in how it may affect aging"
-  "Cannabis is often studied for its role in [HYPERLINK: managing pain conditions | https://www.veriheal.com/blog/terpenes/pain-inflammation-relief/] linked to aging"
-  "you can [HYPERLINK: find a doctor today | https://www.veriheal.com/find-a-medical-marijuana-doctor/] to get support suited to your needs"
+  "the [HYPERLINK: way you use cannabis | https://www.example.com/blog/cannabis-consumption-methods/] plays a central role in how it may affect aging"
+  "Cannabis is often studied for its role in [HYPERLINK: managing pain conditions | https://www.example.com/blog/pain-relief/] linked to aging"
+  "you can [HYPERLINK: find a doctor today | https://www.example.com/find-a-doctor/] to get support suited to your needs"
 
 Return the full article text with the links embedded and nothing else.
 
@@ -1658,17 +1667,19 @@ ARTICLE:
 def _embed_missing_external_links(
     article_text: str,
     client: anthropic.Anthropic,
+    domain: str = "veriheal.com",
 ) -> str:
     """
     Pre-flight check: scans the article for HYPERLINK markers pointing to
-    non-veriheal.com domains. If none are found, makes a targeted Claude call
+    non-client domains. If none are found, makes a targeted Claude call
     to inject 2-3 external links into existing body paragraphs.
     Returns the (possibly revised) article text.
     """
     import re
 
-    # Count confirmed external links (real https:// domain, not veriheal.com, not UNCONFIRMED)
-    external_pattern = re.compile(r'\[HYPERLINK:[^\]]+\|\s*https?://(?!(?:www\.)?veriheal\.com)[^\]]+\]')
+    # Count confirmed external links (real https:// domain, not client domain, not UNCONFIRMED)
+    _escaped = re.escape(domain)
+    external_pattern = re.compile(r'\[HYPERLINK:[^\]]+\|\s*https?://(?!(?:www\.)?' + _escaped + r')[^\]]+\]')
     # Also count UNCONFIRMED markers — these are valid external link placeholders
     unconfirmed_pattern = re.compile(r'\[HYPERLINK:[^\]]+\|\s*UNCONFIRMED\]', re.IGNORECASE)
 
@@ -1774,11 +1785,25 @@ def _build_metadata_table(brief_text: str, url: str) -> str:
                         return value
         return ""
 
-    meta_title = _extract_after(brief_text, "Revised Title Tag", "Revised Title")
-    meta_desc  = _extract_after(brief_text, "Revised Meta Description", "Revised Meta Desc")
-    h1         = _extract_after(brief_text, "Revised H1")
+    # Veriheal brief uses "Revised Title Tag / Revised H1" prefixes.
+    # Smart Fog brief uses table rows rendered as "Meta Title | value" / "H1 | value".
+    meta_title = _extract_after(
+        brief_text,
+        "Revised Title Tag", "Revised Title",
+        "Meta Title |", "| Meta Title |",
+    )
+    meta_desc = _extract_after(
+        brief_text,
+        "Revised Meta Description", "Revised Meta Desc",
+        "Meta Description |", "| Meta Description |",
+    )
+    h1 = _extract_after(
+        brief_text,
+        "Revised H1",
+        "H1 |", "| H1 |",
+    )
 
-    slug_match = re.search(r'/blog/([^/?#]+)/?$', url)
+    slug_match = re.search(r'/(?:blog|insights)/([^/?#]+)/?$', url)
     slug = slug_match.group(1) if slug_match else url.rstrip("/").split("/")[-1]
 
     return (
@@ -1798,11 +1823,20 @@ def generate_article(
     keyword_data: dict,
     nlp_terms: dict,
     output_dir: str,
+    profile: dict | None = None,
 ) -> str:
     """
     Generate the Phase 2 optimised article and save it as a .docx file.
     Returns the absolute path to the generated file.
+
+    Args:
+        profile: Client profile dict from config.load_client_profile().
+                 Controls which system prompt, article rules, and context
+                 files are loaded. Falls back to safe defaults if None.
     """
+    _profile = profile or {}
+    _domain = _profile.get("domain", "veriheal.com")
+    _client_name = _profile.get("client_name", "Content")
     print("  Reading brief...")
     brief_text = _read_brief(brief_path)
 
@@ -1811,10 +1845,10 @@ def generate_article(
     print("  Metadata table built from brief.")
 
     print("  Building article prompt...")
-    system_prompt = _load_system_prompt()
-    context = load_all_context(config)
-    context_text = format_context_for_prompt(context)[:12000]
-    user_message = _build_user_message(url, article_data, brief_text, keyword_data, nlp_terms, context_text)
+    system_prompt = _load_system_prompt(_profile)
+    context = load_all_context(config, _profile)
+    context_text = format_context_for_prompt(context, _profile)[:12000]
+    user_message = _build_user_message(url, article_data, brief_text, keyword_data, nlp_terms, context_text, _profile)
 
     print("  Calling Claude API for article generation...")
     client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
@@ -1870,7 +1904,7 @@ def generate_article(
 
     # Second-pass: deterministically embed any internal links the first pass missed.
     # This pass may introduce new [HYPERLINK: anchor | UNCONFIRMED] markers.
-    article_text = _embed_missing_links(article_text, brief_text, client)
+    article_text = _embed_missing_links(article_text, brief_text, client, domain=_domain)
 
     # Citation resolution pass 2: resolve any UNCONFIRMED markers introduced
     # by the embedding pass above, before the external injection runs.
@@ -1878,11 +1912,19 @@ def generate_article(
 
     # Third-pass: inject external links if the first two passes produced none.
     # This pass may also introduce new [HYPERLINK: anchor | UNCONFIRMED] markers.
-    article_text = _embed_missing_external_links(article_text, client)
+    article_text = _embed_missing_external_links(article_text, client, domain=_domain)
 
     # Citation resolution pass 3: resolve any UNCONFIRMED markers introduced
     # by the external injection pass above.
     article_text = _resolve_external_citations(article_text, client, article_data)
+
+    # Bullet cluster normaliser: enforce **Item Name:** bold on every cluster bullet.
+    # Runs after all Claude passes so inconsistent bolding is fixed deterministically.
+    article_text = _normalize_bullet_cluster_bold(article_text)
+
+    # CTA resolver: wrap any plain-prose CTA phrases in [HYPERLINK: | ] format.
+    # Runs after all Claude passes so it catches CTAs the model wrote without markup.
+    article_text = _resolve_cta_links(article_text, _profile)
 
     # Prepend the deterministic metadata table AFTER all Claude revision passes so
     # that no subsequent Claude call can accidentally drop it.
@@ -1899,12 +1941,12 @@ def generate_article(
 
     # Deterministic pre-check: count confirmed external links before calling Claude.
     # A confirmed external link is [HYPERLINK: anchor | url] where url starts with
-    # "http", does not contain "veriheal.com", and does not contain "UNCONFIRMED".
+    # "http", does not contain the client domain, and does not contain "UNCONFIRMED".
     _ext_link_pat = _re.compile(r'\[HYPERLINK:([^\|]+)\|([^\]]+)\]')
     confirmed_external_count = sum(
         1 for m in _ext_link_pat.finditer(article_text)
         if m.group(2).strip().startswith("http")
-        and "veriheal.com" not in m.group(2)
+        and _domain not in m.group(2)
         and "UNCONFIRMED" not in m.group(2)
     )
     print(f"  Confirmed external links (pre-QA): {confirmed_external_count}")
@@ -1920,7 +1962,7 @@ def generate_article(
         _bd_url = m.group(2).strip()
         if (
             _bd_url.startswith("http")
-            and "veriheal.com" not in _bd_url
+            and _domain not in _bd_url
             and "UNCONFIRMED" not in _bd_url
             and _urlparse(_bd_url).path.strip("/") == ""
         ):
@@ -1931,6 +1973,7 @@ def generate_article(
             print(f"    - {_anchor} | {_url}")
 
     print("  Running QA check...")
+    _article_rules_for_qa = _load_article_rules(_profile)
     qa_result = _run_qa_check(
         article_text=article_text,
         brief_text=brief_text,
@@ -1939,6 +1982,8 @@ def generate_article(
         confirmed_external_count=confirmed_external_count,
         bare_domain_links=bare_domain_links,
         client=client,
+        profile=_profile,
+        article_rules=_article_rules_for_qa,
     )
 
     if qa_result["critical_failures"]:
@@ -1972,6 +2017,6 @@ def generate_article(
     article_text = article_text.replace(" — ", " - ").replace("—", "-")
 
     print(f"  Writing article to {output_path}...")
-    _parse_and_write_doc(article_text, url, output_path, qa_result["report"])
+    _parse_and_write_doc(article_text, url, output_path, qa_result["report"], client_name=_client_name)
     print(f"  Article saved: {filename}")
     return output_path

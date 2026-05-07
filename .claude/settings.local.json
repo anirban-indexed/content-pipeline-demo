@@ -109,7 +109,21 @@
       "Bash(python3 main.py --url \"https://www.veriheal.com/blog/rolling-papers-explained-histor-application-and-types/\")",
       "Bash(python3 main.py --url \"https://www.veriheal.com/blog/what-is-a-penjamin/\")",
       "Bash(python3 main.py --url \"https://www.veriheal.com/blog/the-sad-world-of-cannabis-dating-apps/\")",
-      "Bash(python3 main.py --url \"https://www.veriheal.com/blog/is-it-safe-to-mix-cymbalta-and-weed/\")"
+      "Bash(python3 main.py --url \"https://www.veriheal.com/blog/is-it-safe-to-mix-cymbalta-and-weed/\")",
+      "Bash(python3 main.py --client smart-fog --list)",
+      "Bash(xargs -I{} basename \"{}\")",
+      "Bash(python3 -c \"import sys,json; p=json.load\\(sys.stdin\\); [print\\(x\\) for x in p.get\\('context_files',{}\\).get\\('example_articles',[]\\)]\")",
+      "Bash(cp '/Users/anirbanduttachoudhury/Downloads/how long do humidifiers last.docx' '/Users/anirbanduttachoudhury/Downloads/claude code codebase/veriheal-content-pipeline/.claude/worktrees/wonderful-heyrovsky-3cf157/inputs/smart-fog/examples/how-long-do-humidifiers-last.docx')",
+      "Bash(cp '/Users/anirbanduttachoudhury/Downloads/Humidity Requirements for PCB Manufacturing.docx' '/Users/anirbanduttachoudhury/Downloads/claude code codebase/veriheal-content-pipeline/.claude/worktrees/wonderful-heyrovsky-3cf157/inputs/smart-fog/examples/humidity-requirements-pcb-manufacturing.docx')",
+      "Bash(cp '/Users/anirbanduttachoudhury/Downloads/PCB Humidifiers_ Selection Guide for Manufacturers.docx' '/Users/anirbanduttachoudhury/Downloads/claude code codebase/veriheal-content-pipeline/.claude/worktrees/wonderful-heyrovsky-3cf157/inputs/smart-fog/examples/pcb-humidifiers-selection-guide.docx')",
+      "Bash(cp '/Users/anirbanduttachoudhury/Downloads/humidity controlled storage.docx' '/Users/anirbanduttachoudhury/Downloads/claude code codebase/veriheal-content-pipeline/.claude/worktrees/wonderful-heyrovsky-3cf157/inputs/smart-fog/examples/humidity-controlled-storage.docx')",
+      "Bash(cp '/Users/anirbanduttachoudhury/Downloads/dust suppression system.docx' '/Users/anirbanduttachoudhury/Downloads/claude code codebase/veriheal-content-pipeline/.claude/worktrees/wonderful-heyrovsky-3cf157/inputs/smart-fog/examples/dust-suppression-system.docx')",
+      "Bash(python3 main.py --client smart-fog --row 2)",
+      "Bash(python3)",
+      "Bash(python3 -c \" from docx import Document doc = Document\\('outputs/smart-fog/article_dry-fog-vs-steam-vs-ultrasonic-humidification-comp_20260507_145228.docx'\\) text = [] for p in doc.paragraphs: if p.text.strip\\(\\): style = p.style.name prefix = '' if 'Heading 2' in style: prefix = 'H2: ' elif 'Heading 3' in style: prefix = 'H3: ' elif 'List' in style: prefix = ' • ' text.append\\(prefix + p.text.strip\\(\\)\\) print\\('\\\\n'.join\\(text\\)\\) \")",
+      "Bash(python3 -c \" from docx import Document doc = Document\\('outputs/smart-fog/article_dry-fog-vs-steam-vs-ultrasonic-humidification-comp_20260507_155427.docx'\\) text = [] for p in doc.paragraphs: if p.text.strip\\(\\): style = p.style.name prefix = '' if 'Heading 2' in style: prefix = '\\\\nH2: ' elif 'Heading 3' in style: prefix = '\\\\n H3: ' elif 'List' in style: prefix = ' • ' text.append\\(prefix + p.text.strip\\(\\)\\) full = '\\\\n'.join\\(text\\) words = len\\(full.split\\(\\)\\) print\\(f'WORD COUNT: {words}'\\) print\\(full\\) \")",
+      "Bash(python3 -m json.tool)",
+      "Bash(git add *)"
     ]
   }
 }

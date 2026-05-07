@@ -9,8 +9,10 @@ from datetime import date
 import config
 
 AHREFS_BASE = "https://api.ahrefs.com/v3"
-VERIHEAL_DOMAIN = "veriheal.com"
-BLOCKED_DOMAINS = {
+
+# Fallback values used only when no profile is passed (e.g. standalone testing)
+_DEFAULT_DOMAIN = "veriheal.com"
+_DEFAULT_BLOCKED_DOMAINS: set[str] = {
     "leafwell.com", "nuggmd.com", "leafly.com",
     "greenhealthdocs.com", "docmj.com", "quickmedcards.com",
     "weedmaps.com",
@@ -83,14 +85,25 @@ def _extract_topic(article_data: dict) -> str:
     return topic or " ".join(article_data.get("body_text", "").split()[:8])
 
 
-def run_keyword_research(article_data: dict) -> dict:
+def run_keyword_research(article_data: dict, profile: dict | None = None) -> dict:
     """
     Run Ahrefs keyword research for the article topic.
     Returns structured keyword data for brief_generator.
+
+    Args:
+        article_data: Scraped article data (or content plan row data for Smart Fog).
+        profile:      Client profile dict from config.load_client_profile().
+                      Used for domain and blocked_competitor_domains.
+                      Falls back to Veriheal defaults if not supplied.
     """
     if not config.AHREFS_API_KEY:
         print("  WARNING: No Ahrefs API key — returning empty keyword data.")
         return _empty(article_data)
+
+    domain: str = (profile or {}).get("domain", _DEFAULT_DOMAIN)
+    blocked_domains: set[str] = set((profile or {}).get("blocked_competitor_domains", _DEFAULT_BLOCKED_DOMAINS))
+    client_name: str = (profile or {}).get("client_name", "Client")
+    brand_tokens: tuple = tuple((profile or {}).get("nlp_blocked_brands", _DEFAULT_BRAND_TOKENS))
 
     topic = _extract_topic(article_data)
     h1 = article_data.get("h1", "")
@@ -227,7 +240,7 @@ def run_keyword_research(article_data: dict) -> dict:
 
     # --- Fallback: URL organic keywords + Claude selection ---
     if not results["primary_keyword"]:
-        fallback = _run_url_fallback_research(article_data, today)
+        fallback = _run_url_fallback_research(article_data, today, brand_tokens=brand_tokens)
         if fallback:
             results["primary_keyword"] = fallback["primary_keyword"]
             results["primary_sv"] = fallback["primary_sv"]
@@ -268,11 +281,11 @@ def run_keyword_research(article_data: dict) -> dict:
                     _organic = _sresp.json().get("organic", [])
                     _serper_intent_urls = [
                         r.get("link", "") for r in _organic
-                        if "veriheal.com" not in r.get("link", "")
+                        if domain not in r.get("link", "")
                     ][:5]
                     _serper_intent_titles = [
                         r.get("title", "") for r in _organic
-                        if "veriheal.com" not in r.get("link", "")
+                        if domain not in r.get("link", "")
                     ][:5]
             except Exception as _se:
                 print(f"  Intent check: Serper search failed — {_se}")
@@ -392,7 +405,7 @@ def run_keyword_research(article_data: dict) -> dict:
     try:
         r = _get("site-explorer/organic-keywords", {
             "select": "keyword,best_position,best_position_url",
-            "target": VERIHEAL_DOMAIN,
+            "target": domain,
             "mode": "subdomains",
             "country": "us",
             "limit": "20",
@@ -428,26 +441,29 @@ def run_keyword_research(article_data: dict) -> dict:
 
     # --- Competitor URLs via Serper (replaces unavailable Ahrefs serp-overview) ---
     results["top_competitor_urls"] = _serper_competitor_urls(
-        results["primary_keyword"] or topic
+        results["primary_keyword"] or topic,
+        domain=domain,
+        blocked_domains=blocked_domains,
     )
 
     results["rankability_note"] = (
         f"Primary keyword '{results['primary_keyword']}' has KD {results['primary_kd']}. "
-        f"Assess Veriheal DR vs top 10 competitors manually if needed."
+        f"Assess {client_name} DR vs top 10 competitors manually if needed."
     )
 
     return results
 
 
-# Commercial / pricing / brand tokens — filtered out before Claude selection (Step 4)
+# Commercial / pricing tokens — always filtered out before Claude selection (Step 4)
 _COMMERCIAL_TOKENS = ("$", "cost", "price", "cheap", "near me", "how much")
-_BRAND_TOKENS = ("veriheal", "leafly", "weedmaps", "nuggmd", "leafwell",
-                 "docmj", "quickmedcards", "greenhealthdocs")
+# Default brand tokens (Veriheal competitors) — overridden by profile nlp_blocked_brands
+_DEFAULT_BRAND_TOKENS = ("veriheal", "leafly", "weedmaps", "nuggmd", "leafwell",
+                         "docmj", "quickmedcards", "greenhealthdocs")
 
 
-def _is_commercial(keyword: str) -> bool:
+def _is_commercial(keyword: str, brand_tokens: tuple = _DEFAULT_BRAND_TOKENS) -> bool:
     kw = keyword.lower()
-    return any(t in kw for t in _COMMERCIAL_TOKENS + _BRAND_TOKENS)
+    return any(t in kw for t in _COMMERCIAL_TOKENS + brand_tokens)
 
 
 def _extract_slug_phrase(article_data: dict) -> str:
@@ -466,7 +482,7 @@ def _extract_slug_phrase(article_data: dict) -> str:
     return " ".join(words)
 
 
-def _run_url_fallback_research(article_data: dict, today: str) -> dict | None:
+def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tuple = _DEFAULT_BRAND_TOKENS) -> dict | None:
     """
     Replacement fallback when matching-terms returns nothing.
 
@@ -513,7 +529,7 @@ def _run_url_fallback_research(article_data: dict, today: str) -> dict | None:
     n_raw = len(step1_raw)
     after_commercial = [
         k for k in step1_raw
-        if not _is_commercial(k.get("keyword", ""))
+        if not _is_commercial(k.get("keyword", ""), brand_tokens)
     ]
     n_commercial_filtered = n_raw - len(after_commercial)
     if n_commercial_filtered > 0:
@@ -689,7 +705,7 @@ def _run_url_fallback_research(article_data: dict, today: str) -> dict | None:
         for line in response_text.splitlines():
             if line.startswith("PRIMARY KEYWORD:"):
                 candidate = line.split(":", 1)[1].strip()
-                if candidate and not _is_commercial(candidate):
+                if candidate and not _is_commercial(candidate, brand_tokens):
                     primary_kw = candidate
             elif line.startswith("MISMATCH FLAG:"):
                 flag_text = line.split(":", 1)[1].strip()
@@ -707,12 +723,18 @@ def _run_url_fallback_research(article_data: dict, today: str) -> dict | None:
     }
 
 
-def _serper_competitor_urls(keyword: str, n: int = 5) -> list[str]:
+def _serper_competitor_urls(
+    keyword: str,
+    n: int = 5,
+    domain: str = _DEFAULT_DOMAIN,
+    blocked_domains: set | None = None,
+) -> list[str]:
     """
     Use Serper to get top organic competitor URLs for a keyword (US).
-    Filters out veriheal.com and all blocked domains.
+    Filters out the client domain and all blocked competitor domains.
     Returns up to n URLs.
     """
+    _blocked = blocked_domains if blocked_domains is not None else _DEFAULT_BLOCKED_DOMAINS
     if not config.SERPER_API_KEY:
         print("  WARNING: No Serper API key — skipping competitor URL lookup.")
         return []
@@ -730,9 +752,9 @@ def _serper_competitor_urls(keyword: str, n: int = 5) -> list[str]:
         for item in organic:
             url = item.get("link", "")
             host = url.split("/")[2] if url.startswith("http") else ""
-            if "veriheal.com" in host:
+            if domain in host:
                 continue
-            if any(blocked in host for blocked in BLOCKED_DOMAINS):
+            if any(blocked in host for blocked in _blocked):
                 continue
             urls.append(url)
             if len(urls) >= n:

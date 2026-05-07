@@ -8,3 +8,4 @@ Thumbs.db
 .venv/
 venv/
 node_modules/
+.claude/

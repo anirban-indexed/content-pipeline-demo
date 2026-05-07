@@ -1,0 +1,115 @@
+{
+  "client_name": "Smart Fog",
+  "domain": "smartfog.com",
+  "cta_contact_url": "https://www.smartfog.com/contact-us/",
+  "input_type": "content_plan",
+  "blocked_competitor_domains": [
+    "condair.com", "munters.com", "meefog.com", "ikeuchi.com", "fogco.com",
+    "ultrafog.com", "draabe.com", "nortec.com", "carel.com", "stulz.com"
+  ],
+  "allowed_external_sources": [
+    "osha.gov", "epa.gov", "niosh.cdc.gov", "cdc.gov", "ashrae.org",
+    "nasa.gov", "pubmed.ncbi.nlm.nih.gov", "pmc.ncbi.nlm.nih.gov",
+    "nih.gov", "energystar.gov", "iso.org", "ieee.org", "nfpa.org",
+    "ansi.org"
+  ],
+  "blocked_external_sources": [
+    "condair.com", "munters.com", "meefog.com", "ikeuchi.com", "fogco.com",
+    "ultrafog.com", "draabe.com", "nortec.com", "carel.com", "stulz.com"
+  ],
+  "nlp_blocked_brands": [
+    "condair", "munters", "meefog", "ikeuchi", "fogco", "ultrafog",
+    "draabe", "nortec", "carel", "stulz"
+  ],
+  "abbreviation_map": [
+    ["RH", "relative humidity"],
+    ["HVAC", "heating, ventilation, and air conditioning"],
+    ["ESD", "electrostatic discharge"],
+    ["OSHA", "Occupational Safety and Health Administration"],
+    ["EPA", "Environmental Protection Agency"],
+    ["NIOSH", "National Institute for Occupational Safety and Health"],
+    ["ASHRAE", "American Society of Heating, Refrigerating and Air-Conditioning Engineers"],
+    ["BMS", "building management system"],
+    ["PEL", "permissible exposure limit"],
+    ["PCB", "printed circuit board"]
+  ],
+  "disclaimers": [],
+  "outputs_dir": "outputs/smart-fog",
+  "inputs_dir": "inputs/smart-fog",
+  "context_files": {
+    "editorial_handbook": "",
+    "example_articles": [
+      "inputs/smart-fog/examples/how-long-do-humidifiers-last.docx",
+      "inputs/smart-fog/examples/humidity-requirements-pcb-manufacturing.docx",
+      "inputs/smart-fog/examples/pcb-humidifiers-selection-guide.docx",
+      "inputs/smart-fog/examples/humidity-controlled-storage.docx",
+      "inputs/smart-fog/examples/dust-suppression-system.docx"
+    ]
+  },
+  "content_plan": {
+    "excel_path": "inputs/smart-fog/Smart Fog Content Plan.xlsx",
+    "active_tab": "High Priority Content",
+    "tabs": {
+      "High Priority Content": {
+        "col_primary_keyword": "Primary Keyword",
+        "col_topic": "Topic Title",
+        "col_url": "URL",
+        "col_secondary_keywords": "Secondary Keywords",
+        "col_search_volume": "SV",
+        "col_keyword_difficulty": "KD",
+        "col_traffic_potential": "TP",
+        "col_intent": "Intent",
+        "col_funnel": "Funnel",
+        "col_type": "Type",
+        "col_role": "Role",
+        "col_cluster": "Cluster",
+        "col_priority": "Prio",
+        "col_landing_page": "Landing Page",
+        "col_strategy_notes": "Strategy Notes",
+        "col_ai_visibility_notes": "AI Visibility Notes",
+        "col_month": "Month",
+        "col_status": "Status"
+      },
+      "Blog Content Plan": {
+        "col_primary_keyword": "Keywords",
+        "col_topic": "Topics",
+        "col_url": "Current Live URL",
+        "col_secondary_keywords": "",
+        "col_search_volume": "Search Volume",
+        "col_keyword_difficulty": "",
+        "col_traffic_potential": "",
+        "col_intent": "Primary Intent",
+        "col_funnel": "Funnel",
+        "col_type": "Pillar / Supporting",
+        "col_role": "",
+        "col_cluster": "Industry/Solutions",
+        "col_priority": "",
+        "col_landing_page": "Sub-Industry / Landing Page",
+        "col_strategy_notes": "Notes",
+        "col_ai_visibility_notes": "",
+        "col_month": "Client Month",
+        "col_status": "Status"
+      },
+      "Landing Page": {
+        "col_primary_keyword": "Primary Keyword",
+        "col_topic": "Page Title",
+        "col_url": "Current URL",
+        "col_secondary_keywords": "Secondary Keyword",
+        "col_search_volume": "Volume",
+        "col_keyword_difficulty": "",
+        "col_traffic_potential": "",
+        "col_intent": "",
+        "col_funnel": "",
+        "col_type": "Type",
+        "col_role": "",
+        "col_cluster": "",
+        "col_priority": "",
+        "col_landing_page": "",
+        "col_strategy_notes": "",
+        "col_ai_visibility_notes": "",
+        "col_month": "",
+        "col_status": ""
+      }
+    }
+  }
+}

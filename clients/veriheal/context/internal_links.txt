@@ -1,0 +1,5 @@
+# Veriheal internal link pool
+# Auto-generated from inputs/veriheal/ content optimization CSV at runtime.
+# This file is not used directly — context_loader.py reads the CSV.
+# To add manual links not in the CSV, add lines in this format:
+# - [page topic] → [full URL]

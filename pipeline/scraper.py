@@ -1,5 +1,5 @@
 """
-scraper.py — Fetches and parses the target Veriheal article.
+scraper.py — Fetches and parses the target article for any client.
 """
 
 from __future__ import annotations
@@ -16,9 +16,9 @@ HEADERS = {
 }
 
 
-def scrape_article(url: str) -> dict:
+def scrape_article(url: str, domain: str = "veriheal.com") -> dict:
     """
-    Fetch and parse the Veriheal article at url.
+    Fetch and parse the article at url.
 
     Returns:
         {
@@ -68,7 +68,7 @@ def scrape_article(url: str) -> dict:
     body_text = body_tag.get_text(separator=" ", strip=True) if body_tag else ""
     word_count = len(body_text.split())
 
-    # Internal links (veriheal.com) and external links
+    # Internal and external links
     internal_links = []
     external_links = []
     for a in soup.find_all("a", href=True):
@@ -76,7 +76,7 @@ def scrape_article(url: str) -> dict:
         anchor = a.get_text(strip=True)
         if not anchor or not href:
             continue
-        if "veriheal.com" in href or href.startswith("/"):
+        if domain in href or href.startswith("/"):
             internal_links.append({"anchor": anchor, "href": href})
         elif href.startswith("http"):
             external_links.append({"anchor": anchor, "href": href})

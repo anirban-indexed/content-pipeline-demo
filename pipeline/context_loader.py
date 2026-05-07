@@ -1,8 +1,9 @@
 """
-context_loader.py — Reads all context files from inputs/ and returns
+context_loader.py — Reads all context files from the client profile and returns
 their content as text to be passed to Claude with every session.
 
-Handles: .docx (python-docx), .xlsx (openpyxl), .csv (pandas)
+Handles: .docx (python-docx), .xlsx (openpyxl), .csv (pandas),
+         .txt and .md (plain text)
 """
 
 from __future__ import annotations
@@ -47,10 +48,35 @@ def read_csv(path: str) -> str:
         return f"[ERROR reading {os.path.basename(path)}: {e}]"
 
 
-def extract_internal_link_pool(path: str) -> str:
+def read_text(path: str) -> str:
+    """Read a plain text or markdown file."""
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return f"[ERROR reading {os.path.basename(path)}: {e}]"
+
+
+def _read_file(path: str) -> str:
+    """Dispatch to the correct reader based on file extension."""
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".docx":
+        return read_docx(path)
+    elif ext == ".xlsx":
+        return read_xlsx(path)
+    elif ext == ".csv":
+        return read_csv(path)
+    elif ext in (".txt", ".md"):
+        return read_text(path)
+    else:
+        return f"[Unsupported file type: {os.path.basename(path)}]"
+
+
+def extract_internal_link_pool(path: str, domain: str) -> str:
     """
     Extract URLs and topics from the content optimization CSV
     and return as a clean list for internal linking recommendations.
+    Filters rows whose URL contains `domain`.
     """
     try:
         df = pd.read_csv(path, header=None, skiprows=2)
@@ -59,7 +85,7 @@ def extract_internal_link_pool(path: str) -> str:
             url = str(row.iloc[0]).strip()
             topic = str(row.iloc[1]).strip()
             if (url.startswith("https://")
-                    and "veriheal.com" in url
+                    and domain in url
                     and topic not in ("nan", "", "Topic")):
                 output.append(f"- {topic} → {url}")
         return "\n".join(output) if output else "No internal link data available."
@@ -67,49 +93,83 @@ def extract_internal_link_pool(path: str) -> str:
         return f"[ERROR extracting internal link pool: {e}]"
 
 
-def load_all_context(config) -> dict:
+def load_all_context(config, profile: dict) -> dict:
     """
-    Load all context files and return as a dict of label -> text content.
-    Called once at pipeline startup and passed to brief_generator and article_generator.
+    Load all context files specified in the client profile and return as a
+    dict of label -> text content.
+
+    Args:
+        config:  The config module (used for ROOT_DIR; not for file paths).
+        profile: The loaded client profile dict (from config.load_client_profile).
     """
-    context = {}
+    context: dict = {}
+    ctx_files = profile.get("_context_files", {})
+    domain = profile.get("domain", "")
 
     # Editorial handbook
-    context["editorial_handbook"] = read_docx(config.EDITORIAL_HANDBOOK)
+    handbook_path = ctx_files.get("editorial_handbook", "")
+    if handbook_path and handbook_path != "TODO" and os.path.exists(handbook_path):
+        context["editorial_handbook"] = _read_file(handbook_path)
+    else:
+        context["editorial_handbook"] = ""
 
-    # State page info
-    context["state_page_info"] = read_xlsx(config.STATE_PAGE_INFO)
+    # State page info (optional — Veriheal-specific; skipped if not in profile)
+    state_page_path = ctx_files.get("state_page_info", "")
+    if state_page_path and state_page_path != "TODO" and os.path.exists(state_page_path):
+        context["state_page_info"] = _read_file(state_page_path)
+    else:
+        context["state_page_info"] = ""
 
-    # Example articles — load all five, label by filename
+    # Example articles
     context["example_articles"] = {}
-    for path in config.EXAMPLE_ARTICLES:
-        label = os.path.splitext(os.path.basename(path))[0]
-        context["example_articles"][label] = read_docx(path)
+    for path in ctx_files.get("example_articles", []):
+        if path and path != "TODO" and os.path.exists(path):
+            label = os.path.splitext(os.path.basename(path))[0]
+            context["example_articles"][label] = _read_file(path)
 
-    context["internal_link_pool"] = extract_internal_link_pool(config.CONTENT_OPTIMIZATION_CSV)
+    # Internal link pool — derived from CSV if present; txt file otherwise
+    csv_path = ctx_files.get("content_optimization_csv", "")
+    if csv_path and csv_path != "TODO" and os.path.exists(csv_path):
+        context["internal_link_pool"] = extract_internal_link_pool(csv_path, domain)
+    else:
+        txt_path = os.path.join(
+            profile.get("_client_dir", ""),
+            "context",
+            "internal_links.txt",
+        )
+        if os.path.exists(txt_path):
+            raw = read_text(txt_path)
+            lines = [l for l in raw.splitlines() if l.strip() and not l.strip().startswith("#")]
+            context["internal_link_pool"] = "\n".join(lines) if lines else "No internal link data available."
+        else:
+            context["internal_link_pool"] = "No internal link data available."
 
     return context
 
 
-def format_context_for_prompt(context: dict) -> str:
+def format_context_for_prompt(context: dict, profile: dict | None = None) -> str:
     """
     Format all loaded context into a single string block
     to be injected into the Claude prompt as reference material.
     """
+    client_name = (profile or {}).get("client_name", "Client")
     sections = []
 
-    sections.append("=== VERIHEAL EDITORIAL HANDBOOK ===")
-    sections.append(context["editorial_handbook"])
+    if context.get("editorial_handbook"):
+        sections.append(f"=== {client_name.upper()} EDITORIAL HANDBOOK ===")
+        sections.append(context["editorial_handbook"])
 
-    sections.append("\n=== STATE PAGE INFO ===")
-    sections.append(context["state_page_info"])
+    if context.get("state_page_info"):
+        sections.append("\n=== STATE PAGE INFO ===")
+        sections.append(context["state_page_info"])
 
-    sections.append("\n=== EXAMPLE ARTICLES (VOICE AND TONE REFERENCE) ===")
-    for label, text in context["example_articles"].items():
-        sections.append(f"\n--- {label} ---")
-        sections.append(text)
+    if context.get("example_articles"):
+        sections.append("\n=== EXAMPLE ARTICLES (VOICE AND TONE REFERENCE) ===")
+        for label, text in context["example_articles"].items():
+            sections.append(f"\n--- {label} ---")
+            sections.append(text)
 
-    sections.append("\n=== VERIHEAL INTERNAL LINK POOL ===")
+    sections.append(f"\n=== {client_name.upper()} INTERNAL LINK POOL ===")
     sections.append("Only recommend URLs from this list for internal links in the brief.")
     sections.append("Do not recommend any URL not on this list. If no relevant URL exists, omit the internal link rather than inventing one.")
     sections.append(context.get("internal_link_pool", ""))

@@ -1,7 +1,7 @@
 """
 competitor_fetcher.py — Fetches and parses top competitor articles for research.
 All competitor sites are fetched freely for research purposes.
-The only URL skipped is veriheal.com itself.
+The only URL skipped is the client's own domain.
 Blocked domain rules apply only to internal linking recommendations in the brief,
 not to competitor research.
 """
@@ -51,10 +51,10 @@ def _fetch_one(url: str) -> dict | None:
     }
 
 
-def fetch_competitors(keyword_data: dict) -> list[dict]:
+def fetch_competitors(keyword_data: dict, domain: str = "veriheal.com") -> list[dict]:
     """
     Fetch and parse top competitor articles for research.
-    All sites fetched freely — only veriheal.com is skipped.
+    All sites fetched freely — only the client's own domain is skipped.
     """
     urls = keyword_data.get("top_competitor_urls", [])
 
@@ -64,8 +64,8 @@ def fetch_competitors(keyword_data: dict) -> list[dict]:
 
     competitors = []
     for url in urls[:5]:
-        if "veriheal.com" in url:
-            print(f"  Skipping Veriheal URL: {url}")
+        if domain in url:
+            print(f"  Skipping own-domain URL: {url}")
             continue
         print(f"  Fetching competitor: {url}")
         result = _fetch_one(url)
