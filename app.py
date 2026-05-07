@@ -3,14 +3,16 @@ app.py — Streamlit demo UI for the Content Pipeline.
 Supports Smart Fog (content plan flow) and Veriheal (URL flow).
 
 Run locally:  streamlit run app.py
-Deploy:       Railway / Render — set API keys as env vars, uses Procfile for startup.
+Deploy:       Streamlit Cloud — set API keys as secrets, uses Procfile for startup.
 """
 
 from __future__ import annotations
 import os
+import re
 import sys
 import time
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 import streamlit as st
@@ -19,17 +21,7 @@ from docx import Document
 ROOT = Path(__file__).parent
 
 # ---------------------------------------------------------------------------
-# Session state initialisation
-# ---------------------------------------------------------------------------
-if "article_path" not in st.session_state:
-    st.session_state.article_path = None
-if "brief_path" not in st.session_state:
-    st.session_state.brief_path = None
-if "last_client" not in st.session_state:
-    st.session_state.last_client = None
-
-# ---------------------------------------------------------------------------
-# Page config
+# Page config  (must be first Streamlit call)
 # ---------------------------------------------------------------------------
 st.set_page_config(
     page_title="Content Pipeline",
@@ -37,6 +29,24 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# ---------------------------------------------------------------------------
+# Session state initialisation
+# ---------------------------------------------------------------------------
+_STATE_DEFAULTS: dict = {
+    "article_path": None,
+    "brief_path": None,
+    "last_client": None,
+    "is_running": False,
+    "last_generated_name": None,
+    "last_generated_time": None,
+    "error_message": None,
+    "current_stage_num": 0,
+    "total_stages": 6,
+}
+for _k, _v in _STATE_DEFAULTS.items():
+    if _k not in st.session_state:
+        st.session_state[_k] = _v
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -91,17 +101,27 @@ def _read_docx_for_display(path: Path) -> str:
         return f"Could not render document: {e}"
 
 
-def _latest_output(client_key: str, prefix: str) -> Path | None:
-    """Return the most recently modified output file matching the prefix."""
+def _word_count(path: Path) -> int:
+    """Count words in a docx file."""
+    try:
+        doc = Document(str(path))
+        text = " ".join(p.text for p in doc.paragraphs)
+        return len(text.split())
+    except Exception:
+        return 0
+
+
+def _latest_output(client_key: str, kind: str) -> Path | None:
+    """Return the most recently modified brief or article docx for a client."""
     output_dir = ROOT / "outputs" / client_key
     if not output_dir.exists():
         return None
-    files = sorted(
-        output_dir.glob(f"{prefix}_*.docx"),
-        key=lambda f: f.stat().st_mtime,
-        reverse=True,
-    )
-    return files[0] if files else None
+    all_docx = [f for f in output_dir.glob("*.docx") if not f.name.startswith("_")]
+    if kind == "brief":
+        files = [f for f in all_docx if f.name.lower().startswith("brief")]
+    else:
+        files = [f for f in all_docx if not f.name.lower().startswith("brief")]
+    return sorted(files, key=lambda f: f.stat().st_mtime, reverse=True)[0] if files else None
 
 
 def _load_smart_fog_rows() -> list[tuple[int, str, str]]:
@@ -121,7 +141,7 @@ def _load_smart_fog_rows() -> list[tuple[int, str, str]]:
         return [
             (
                 int(r.get("content_plan_row", i)),
-                r.get("content_plan_topic", "")[:70],
+                r.get("content_plan_topic", "")[:80],
                 r.get("content_plan_primary_keyword", ""),
             )
             for i, r in enumerate(rows)
@@ -160,35 +180,59 @@ def _download_button(path: Path, label: str):
 
 
 # ---------------------------------------------------------------------------
-# Sidebar — client selector
+# Sidebar — client selector + pipeline stages + last generated
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    st.image("https://www.smartfog.com/wp-content/uploads/2021/07/smart-fog-logo.png", width=160)
+    st.markdown("## ✍️ Content Pipeline")
     st.markdown("---")
+
     client_display = st.radio(
         "Client",
         ["Smart Fog", "Veriheal"],
         index=0,
+        disabled=st.session_state.is_running,
     )
     client_key = "smart-fog" if client_display == "Smart Fog" else "veriheal"
 
     st.markdown("---")
+
+    # Pipeline stages — highlight current stage during a run
+    _smart_fog_stages = [
+        "Parse content plan",
+        "Ahrefs keyword research",
+        "Competitor analysis",
+        "NeuronWriter NLP terms",
+        "Brief generation",
+        "Article generation",
+    ]
+    _veriheal_stages = [
+        "Scrape article URL",
+        "GSC data",
+        "Ahrefs keyword research",
+        "Competitor analysis",
+        "NeuronWriter NLP terms",
+        "Brief generation",
+        "Article generation",
+    ]
+    _stages = _smart_fog_stages if client_display == "Smart Fog" else _veriheal_stages
+    _cur = st.session_state.current_stage_num
+
     st.caption("Pipeline stages")
-    if client_display == "Smart Fog":
-        st.caption("1 · Parse content plan")
-        st.caption("2 · Ahrefs keyword research")
-        st.caption("3 · Competitor analysis")
-        st.caption("4 · NeuronWriter NLP terms")
-        st.caption("5 · Brief generation")
-        st.caption("6 · Article generation")
-    else:
-        st.caption("1 · Scrape article URL")
-        st.caption("2 · GSC data")
-        st.caption("3 · Ahrefs keyword research")
-        st.caption("4 · Competitor analysis")
-        st.caption("5 · NeuronWriter NLP terms")
-        st.caption("6 · Brief generation")
-        st.caption("7 · Article generation")
+    for _i, _stage in enumerate(_stages, start=1):
+        if st.session_state.is_running and _i == _cur:
+            st.markdown(f"**→ {_i} · {_stage}**")
+        elif _i < _cur:
+            st.caption(f"✓ {_i} · {_stage}")
+        else:
+            st.caption(f"{_i} · {_stage}")
+
+    # Last generated indicator
+    if st.session_state.last_generated_name:
+        st.markdown("---")
+        st.caption("Last generated")
+        st.caption(f"📄 {st.session_state.last_generated_name}")
+        if st.session_state.last_generated_time:
+            st.caption(f"🕐 {st.session_state.last_generated_time}")
 
 # ---------------------------------------------------------------------------
 # Main
@@ -213,13 +257,18 @@ if client_display == "Smart Fog":
             "Select article from content plan",
             list(options.keys()),
             help="Rows are pulled live from the Smart Fog Content Plan Excel file.",
+            disabled=st.session_state.is_running,
         )
         selected_row = options[selected_label]
         selected_kw = next(kw for idx, _, kw in rows if idx == selected_row)
+        # Show full title in case selectbox truncates
+        if len(selected_label) > 60:
+            st.caption(f"📌 {selected_label}")
         st.caption(f"Primary keyword: **{selected_kw}**")
         run_args = ["--client", "smart-fog", "--row", str(selected_row)]
     else:
-        row_num = st.number_input("Row number", min_value=0, value=0, step=1)
+        row_num = st.number_input("Row number", min_value=0, value=0, step=1,
+                                   disabled=st.session_state.is_running)
         run_args = ["--client", "smart-fog", "--row", str(row_num)]
 
 # --- Veriheal ---
@@ -229,9 +278,14 @@ else:
         "Article URL",
         placeholder="https://www.veriheal.com/blog/...",
         help="Enter the full URL of an existing Veriheal article to optimise.",
+        disabled=st.session_state.is_running,
     )
-    if url.strip():
-        run_args = ["--client", "veriheal", "--url", url.strip()]
+    _url = url.strip()
+    if _url:
+        if "veriheal.com" not in _url:
+            st.warning("URL should be a veriheal.com article.")
+        else:
+            run_args = ["--client", "veriheal", "--url", _url]
     else:
         st.info("Enter an article URL to continue.")
 
@@ -239,83 +293,139 @@ else:
 # Generate button
 # ---------------------------------------------------------------------------
 st.divider()
-generate = st.button(
-    "🚀 Generate Brief + Article",
-    type="primary",
-    disabled=not run_args,
-    use_container_width=False,
-)
 
-if generate and run_args:
-    # Clear previous outputs when a new run starts
+col_btn, col_note = st.columns([2, 5])
+with col_btn:
+    generate = st.button(
+        "🚀 Generate Brief + Article",
+        type="primary",
+        disabled=not run_args or st.session_state.is_running,
+        use_container_width=True,
+    )
+with col_note:
+    st.caption("⏱ Avg generation time: 6–8 min")
+    if st.session_state.is_running:
+        st.caption("⚙️ Pipeline is running — please wait...")
+
+# ---------------------------------------------------------------------------
+# Pipeline execution
+# ---------------------------------------------------------------------------
+if generate and run_args and not st.session_state.is_running:
+    st.session_state.is_running = True
     st.session_state.article_path = None
     st.session_state.brief_path = None
     st.session_state.last_client = client_key
+    st.session_state.error_message = None
+    st.session_state.current_stage_num = 0
 
     start_time = time.time()
     os.makedirs(ROOT / "outputs" / client_key, exist_ok=True)
 
     log_lines: list[str] = []
-    stage_placeholder = st.empty()
+    error_lines: list[str] = []
+    progress_bar = st.progress(0.0, text="Starting pipeline...")
+    stage_label = st.empty()
     log_placeholder = st.empty()
-    current_stage = "Starting..."
+
+    _total = len(_smart_fog_stages) if client_display == "Smart Fog" else len(_veriheal_stages)
+    st.session_state.total_stages = _total
 
     with st.status("Pipeline running...", expanded=True) as status:
         for line in _run_pipeline(run_args):
             if not line.strip():
                 continue
-            if line.strip().startswith("Stage") and "/" in line:
-                current_stage = line.strip().strip("= ")
-                stage_placeholder.markdown(f"**{current_stage}**")
-            elif "===" in line:
-                pass
-            else:
-                log_lines.append(line.strip())
-                log_placeholder.code("\n".join(log_lines[-25:]), language=None)
+
+            # Detect stage markers — format: "Stage X/Y" or "=== Stage X/Y ==="
+            _stage_match = re.search(r'Stage\s+(\d+)\s*/\s*(\d+)', line)
+            if _stage_match:
+                _cur_n = int(_stage_match.group(1))
+                _tot_n = int(_stage_match.group(2))
+                st.session_state.current_stage_num = _cur_n
+                _pct = (_cur_n - 1) / _tot_n
+                _stage_name = _stages[_cur_n - 1] if _cur_n <= len(_stages) else ""
+                progress_bar.progress(_pct, text=f"Stage {_cur_n}/{_tot_n} — {_stage_name}")
+                stage_label.markdown(f"**Stage {_cur_n}/{_tot_n} — {_stage_name}**")
+                continue
+
+            if "===" in line:
+                continue
+
+            # Detect errors
+            _low = line.lower()
+            if any(k in _low for k in ("error", "failed", "critical", "traceback", "exception")):
+                error_lines.append(line.strip())
+
+            log_lines.append(line.strip())
+            log_placeholder.code("\n".join(log_lines[-20:]), language=None)
 
         elapsed = time.time() - start_time
-        status.update(
-            label=f"✅ Done in {elapsed:.0f}s",
-            state="complete",
-            expanded=False,
-        )
+        progress_bar.progress(1.0, text="Complete")
 
-    # Store outputs in session state so they persist across interactions
-    st.session_state.article_path = _latest_output(client_key, "article")
-    st.session_state.brief_path = _latest_output(client_key, "brief")
+        if error_lines and not _latest_output(client_key, "article"):
+            st.session_state.error_message = error_lines[-1]
+            status.update(label=f"❌ Pipeline failed after {elapsed:.0f}s", state="error", expanded=True)
+        else:
+            status.update(label=f"✅ Done in {elapsed:.0f}s", state="complete", expanded=False)
 
-# -----------------------------------------------------------------------
-# Output display — shown whenever session state has outputs for this client
-# -----------------------------------------------------------------------
+    # Store outputs and metadata in session state
+    _art = _latest_output(client_key, "article")
+    _brf = _latest_output(client_key, "brief")
+    st.session_state.article_path = str(_art) if _art else None
+    st.session_state.brief_path = str(_brf) if _brf else None
+    st.session_state.current_stage_num = 0
+    st.session_state.is_running = False
+
+    if _art:
+        st.session_state.last_generated_name = _art.stem[:50]
+        st.session_state.last_generated_time = datetime.now().strftime("%d %b %Y, %H:%M")
+
+    st.rerun()
+
+# ---------------------------------------------------------------------------
+# Error display
+# ---------------------------------------------------------------------------
+if st.session_state.error_message and not st.session_state.article_path:
+    st.error(f"Pipeline failed: {st.session_state.error_message}")
+    st.caption("Check the log above for the full trace, fix the issue, and re-run.")
+
+# ---------------------------------------------------------------------------
+# Output display — persists across interactions via session state
+# ---------------------------------------------------------------------------
 if st.session_state.article_path or st.session_state.brief_path:
     st.divider()
     st.subheader("Generated outputs")
 
-    article_path = st.session_state.article_path
-    brief_path = st.session_state.brief_path
+    article_path = Path(st.session_state.article_path) if st.session_state.article_path else None
+    brief_path = Path(st.session_state.brief_path) if st.session_state.brief_path else None
 
-    tab_article, tab_brief = st.tabs(["📄 Article", "📋 Brief"])
+    # Word count badge
+    _wc = _word_count(article_path) if article_path and article_path.exists() else 0
+    _wc_label = f" · {_wc:,} words" if _wc else ""
+
+    tab_article, tab_brief = st.tabs([f"📄 Article{_wc_label}", "📋 Brief"])
 
     with tab_article:
-        if article_path and Path(article_path).exists():
+        if article_path and article_path.exists():
             col_dl, col_info = st.columns([1, 4])
             with col_dl:
-                _download_button(Path(article_path), "⬇️ Download Article (.docx)")
+                _download_button(article_path, "⬇️ Download Article (.docx)")
             with col_info:
-                st.caption(f"File: `{Path(article_path).name}`")
+                st.caption(f"File: `{article_path.name}`")
+                if st.session_state.last_generated_time:
+                    st.caption(f"Generated: {st.session_state.last_generated_time}")
             st.divider()
-            st.markdown(_read_docx_for_display(Path(article_path)))
+            st.markdown(_read_docx_for_display(article_path))
         else:
             st.warning("No article file found. Check the pipeline log above for errors.")
 
     with tab_brief:
-        if brief_path and Path(brief_path).exists():
+        if brief_path and brief_path.exists():
             col_dl, col_info = st.columns([1, 4])
             with col_dl:
-                _download_button(Path(brief_path), "⬇️ Download Brief (.docx)")
+                _download_button(brief_path, "⬇️ Download Brief (.docx)")
             with col_info:
-                st.caption(f"File: `{Path(brief_path).name}`")
+                st.caption(f"File: `{brief_path.name}`")
             st.divider()
-            st.markdown(_read_docx_for_display(Path(brief_path)))
+            st.markdown(_read_docx_for_display(brief_path))
         else:
             st.warning("No brief file found. Check the pipeline log above for errors.")

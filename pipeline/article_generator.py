@@ -2021,7 +2021,7 @@ def generate_article(
         or article_data["url"].rstrip("/").split("/")[-1]
     )
     _safe_title = _re_fn.sub(r'[\\/*?:"<>|]', '', _raw_title).strip()[:80]
-    filename = f"{_safe_title}.docx" if _safe_title else f"article_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+    filename = f"Article - {_safe_title}.docx" if _safe_title else f"article_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
     print(f"  Article output: {filename}")
     output_path = os.path.join(output_dir, filename)
 
