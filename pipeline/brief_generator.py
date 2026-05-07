@@ -453,10 +453,16 @@ def generate_brief(
 
     print("  Brief received from Claude.")
 
-    # Save as .docx
+    # Save as .docx — filename uses article topic/title for readability.
+    import re as _re_fn
+    _raw_title = (
+        article_data.get("content_plan_topic", "")
+        or article_data.get("title", "")
+        or url.rstrip("/").split("/")[-1]
+    )
+    _safe_title = _re_fn.sub(r'[\\/*?:"<>|]', '', _raw_title).strip()[:80]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    slug = url.rstrip("/").split("/")[-1][:40]
-    filename = f"brief_{slug}_{timestamp}.docx"
+    filename = f"Brief - {_safe_title}.docx" if _safe_title else f"brief_{url.rstrip('/').split('/')[-1][:40]}_{timestamp}.docx"
     output_path = os.path.join(output_dir, filename)
 
     print(f"  Saving brief to {output_path}...")

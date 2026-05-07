@@ -1926,6 +1926,14 @@ def generate_article(
     # Runs after all Claude passes so it catches CTAs the model wrote without markup.
     article_text = _resolve_cta_links(article_text, _profile)
 
+    # Strip brief annotation comments that may have leaked into the article body.
+    # Patterns like (New H2 - insert after energy comparison) are meant for editors,
+    # not readers. Remove them deterministically before writing the docx.
+    import re as _re_annot
+    article_text = _re_annot.sub(r'\(\s*New H[1-6][^)]*\)', '', article_text)
+    article_text = _re_annot.sub(r'\(\s*[Ii]nsert\s+[^)]{0,80}\)', '', article_text)
+    article_text = _re_annot.sub(r'\*\(\s*New H[1-6][^)]*\)\*', '', article_text)
+
     # Prepend the deterministic metadata table AFTER all Claude revision passes so
     # that no subsequent Claude call can accidentally drop it.
     article_text = metadata_table + "\n\n" + article_text
@@ -2005,11 +2013,15 @@ def generate_article(
     print(f"  QA verdict: {qa_result['verdict']}")
 
     # Save as .docx
-    # Filename is always pinned to the original article URL — never derived
-    # from brief content, keyword data, or generated text.
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    article_slug = article_data["url"].rstrip("/").split("/")[-1][:50]
-    filename = f"article_{article_slug}_{timestamp}.docx"
+    # Filename uses the article topic/title for readability.
+    import re as _re_fn
+    _raw_title = (
+        article_data.get("content_plan_topic", "")
+        or article_data.get("title", "")
+        or article_data["url"].rstrip("/").split("/")[-1]
+    )
+    _safe_title = _re_fn.sub(r'[\\/*?:"<>|]', '', _raw_title).strip()[:80]
+    filename = f"{_safe_title}.docx" if _safe_title else f"article_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
     print(f"  Article output: {filename}")
     output_path = os.path.join(output_dir, filename)
 
@@ -2017,6 +2029,6 @@ def generate_article(
     article_text = article_text.replace(" — ", " - ").replace("—", "-")
 
     print(f"  Writing article to {output_path}...")
-    _parse_and_write_doc(article_text, url, output_path, qa_result["report"], client_name=_client_name)
+    _parse_and_write_doc(article_text, url, output_path, "", client_name=_client_name)
     print(f"  Article saved: {filename}")
     return output_path

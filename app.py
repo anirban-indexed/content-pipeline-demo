@@ -19,6 +19,16 @@ from docx import Document
 ROOT = Path(__file__).parent
 
 # ---------------------------------------------------------------------------
+# Session state initialisation
+# ---------------------------------------------------------------------------
+if "article_path" not in st.session_state:
+    st.session_state.article_path = None
+if "brief_path" not in st.session_state:
+    st.session_state.brief_path = None
+if "last_client" not in st.session_state:
+    st.session_state.last_client = None
+
+# ---------------------------------------------------------------------------
 # Page config
 # ---------------------------------------------------------------------------
 st.set_page_config(
@@ -32,13 +42,37 @@ st.set_page_config(
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _extract_para_text(para) -> str:
+    """Extract paragraph text, rendering Word hyperlinks as markdown [anchor](url)."""
+    try:
+        from lxml import etree
+        W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        parts = []
+        for child in para._p:
+            local = etree.QName(child).localname
+            if local == "hyperlink":
+                r_id = child.get(f"{{{R}}}id")
+                anchor = "".join((t.text or "") for t in child.findall(f".//{{{W}}}t"))
+                if r_id and hasattr(para.part, "rels") and r_id in para.part.rels:
+                    url = para.part.rels[r_id].target_ref
+                    parts.append(f"[{anchor}]({url})" if url else anchor)
+                else:
+                    parts.append(anchor)
+            elif local == "r":
+                parts.append("".join((t.text or "") for t in child.findall(f".//{{{W}}}t")))
+        return "".join(parts).strip()
+    except Exception:
+        return para.text.strip()
+
+
 def _read_docx_for_display(path: Path) -> str:
-    """Extract text from a docx with basic markdown-style heading markers."""
+    """Extract text from a docx with markdown headings and live hyperlinks."""
     try:
         doc = Document(str(path))
         lines = []
         for p in doc.paragraphs:
-            txt = p.text.strip()
+            txt = _extract_para_text(p)
             if not txt:
                 continue
             style = p.style.name
@@ -140,13 +174,21 @@ with st.sidebar:
 
     st.markdown("---")
     st.caption("Pipeline stages")
-    st.caption("1 · Scrape / parse content plan")
-    st.caption("2 · GSC data")
-    st.caption("3 · Ahrefs keyword research")
-    st.caption("4 · Competitor analysis")
-    st.caption("5 · NeuronWriter NLP terms")
-    st.caption("6 · Brief generation")
-    st.caption("7 · Article generation")
+    if client_display == "Smart Fog":
+        st.caption("1 · Parse content plan")
+        st.caption("2 · Ahrefs keyword research")
+        st.caption("3 · Competitor analysis")
+        st.caption("4 · NeuronWriter NLP terms")
+        st.caption("5 · Brief generation")
+        st.caption("6 · Article generation")
+    else:
+        st.caption("1 · Scrape article URL")
+        st.caption("2 · GSC data")
+        st.caption("3 · Ahrefs keyword research")
+        st.caption("4 · Competitor analysis")
+        st.caption("5 · NeuronWriter NLP terms")
+        st.caption("6 · Brief generation")
+        st.caption("7 · Article generation")
 
 # ---------------------------------------------------------------------------
 # Main
@@ -164,7 +206,7 @@ if client_display == "Smart Fog":
     rows = _load_smart_fog_rows()
     if rows:
         options = {
-            f"Row {idx}  ·  {topic}": idx
+            topic if topic else f"Row {idx}": idx
             for idx, topic, kw in rows
         }
         selected_label = st.selectbox(
@@ -205,6 +247,11 @@ generate = st.button(
 )
 
 if generate and run_args:
+    # Clear previous outputs when a new run starts
+    st.session_state.article_path = None
+    st.session_state.brief_path = None
+    st.session_state.last_client = client_key
+
     start_time = time.time()
     os.makedirs(ROOT / "outputs" / client_key, exist_ok=True)
 
@@ -217,12 +264,11 @@ if generate and run_args:
         for line in _run_pipeline(run_args):
             if not line.strip():
                 continue
-            # Detect stage banners
             if line.strip().startswith("Stage") and "/" in line:
                 current_stage = line.strip().strip("= ")
                 stage_placeholder.markdown(f"**{current_stage}**")
             elif "===" in line:
-                pass  # skip separator lines from display
+                pass
             else:
                 log_lines.append(line.strip())
                 log_placeholder.code("\n".join(log_lines[-25:]), language=None)
@@ -234,37 +280,42 @@ if generate and run_args:
             expanded=False,
         )
 
-    # -----------------------------------------------------------------------
-    # Output display
-    # -----------------------------------------------------------------------
+    # Store outputs in session state so they persist across interactions
+    st.session_state.article_path = _latest_output(client_key, "article")
+    st.session_state.brief_path = _latest_output(client_key, "brief")
+
+# -----------------------------------------------------------------------
+# Output display — shown whenever session state has outputs for this client
+# -----------------------------------------------------------------------
+if st.session_state.article_path or st.session_state.brief_path:
     st.divider()
     st.subheader("Generated outputs")
 
-    brief_path = _latest_output(client_key, "brief")
-    article_path = _latest_output(client_key, "article")
+    article_path = st.session_state.article_path
+    brief_path = st.session_state.brief_path
 
     tab_article, tab_brief = st.tabs(["📄 Article", "📋 Brief"])
 
     with tab_article:
-        if article_path:
+        if article_path and Path(article_path).exists():
             col_dl, col_info = st.columns([1, 4])
             with col_dl:
-                _download_button(article_path, "⬇️ Download Article (.docx)")
+                _download_button(Path(article_path), "⬇️ Download Article (.docx)")
             with col_info:
-                st.caption(f"File: `{article_path.name}`")
+                st.caption(f"File: `{Path(article_path).name}`")
             st.divider()
-            st.markdown(_read_docx_for_display(article_path))
+            st.markdown(_read_docx_for_display(Path(article_path)))
         else:
             st.warning("No article file found. Check the pipeline log above for errors.")
 
     with tab_brief:
-        if brief_path:
+        if brief_path and Path(brief_path).exists():
             col_dl, col_info = st.columns([1, 4])
             with col_dl:
-                _download_button(brief_path, "⬇️ Download Brief (.docx)")
+                _download_button(Path(brief_path), "⬇️ Download Brief (.docx)")
             with col_info:
-                st.caption(f"File: `{brief_path.name}`")
+                st.caption(f"File: `{Path(brief_path).name}`")
             st.divider()
-            st.markdown(_read_docx_for_display(brief_path))
+            st.markdown(_read_docx_for_display(Path(brief_path)))
         else:
             st.warning("No brief file found. Check the pipeline log above for errors.")
