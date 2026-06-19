@@ -4,7 +4,7 @@ Indexed brand theme: dark navy, cyan accent, clean cards.
 All clients: Smart Fog, Upvolt, OE Partners, RecNation, InspectMind, Veriheal.
 """
 from __future__ import annotations
-import os, re, sys, time, subprocess
+import base64, os, re, sys, time, subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -20,6 +20,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+# Override favicon with Indexed logo
+_favicon_path = ROOT / "assets" / "favicon.ico"
+if _favicon_path.exists():
+    _favicon_b64 = base64.b64encode(_favicon_path.read_bytes()).decode()
+    st.markdown(
+        f'<link rel="shortcut icon" href="data:image/x-icon;base64,{_favicon_b64}">',
+        unsafe_allow_html=True,
+    )
 
 # ── Indexed brand CSS ─────────────────────────────────────────────────────────
 st.markdown("""<style>
