@@ -59,24 +59,15 @@ def _create_query(project_id: str, keyword: str) -> str:
     response = _do_post()
 
     if response.status_code == 429:
-        retry_after = response.headers.get("Retry-After", "not present")
-        print(f"  NeuronWriter 429: rate limit hit. Retry-After: {retry_after}. "
-              f"Body: {response.text[:300]}")
-        print("  NeuronWriter: waiting 60s before retry...")
         time.sleep(60)
         response = _do_post()
         if response.status_code == 429:
-            retry_after = response.headers.get("Retry-After", "not present")
-            print(f"  NeuronWriter 429 on retry: Retry-After: {retry_after}. "
-                  f"Body: {response.text[:300]}")
             raise NeuronWriterQuotaError(response.text)
 
     if response.status_code == 400:
-        print(f"  NeuronWriter error 400 (bad keyword — contains invalid characters): {response.text[:300]}")
         raise NeuronWriterQuotaError(response.text)
 
     if not response.ok:
-        print(f"  NeuronWriter error {response.status_code}: {response.text[:300]}")
         response.raise_for_status()
 
     return response.json()["query"]
@@ -95,7 +86,6 @@ def _poll_until_ready(query_id: str) -> dict:
         data = response.json()
         if data.get("status") == "ready":
             return data
-        print(f"  NeuronWriter: status={data.get('status')} — waiting {POLL_INTERVAL}s...")
         time.sleep(POLL_INTERVAL)
         elapsed += POLL_INTERVAL
     raise RuntimeError(f"NeuronWriter query {query_id} did not complete within {MAX_WAIT}s.")
@@ -151,10 +141,9 @@ def get_nlp_terms(keyword_data: dict) -> dict:
     import re as _re
     sanitized_keyword = _re.sub(r'[:\]\[",]', '', keyword).strip()
     if sanitized_keyword != keyword:
-        print(f"  NeuronWriter: keyword sanitized '{keyword}' → '{sanitized_keyword}'")
         keyword = sanitized_keyword
 
-    print(f"  NeuronWriter: creating query for '{keyword}'...")
+    print(f"  NeuronWriter: running analysis for '{keyword}'...")
     project_id = _get_project_id()
     try:
         query_id = _create_query(project_id, keyword)
@@ -173,12 +162,9 @@ def get_nlp_terms(keyword_data: dict) -> dict:
             "terms": [],
             "note": f"NeuronWriter monthly quota exhausted{reset_str}. NLP terms unavailable this month.",
         }
-    print(f"  NeuronWriter: query created ({query_id}), polling for results...")
-
     try:
         data = _poll_until_ready(query_id)
-    except RuntimeError as e:
-        print(f"  NeuronWriter: polling timed out — proceeding without NLP terms. ({e})")
+    except RuntimeError:
         return {
             "enabled": True,
             "terms": [],

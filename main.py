@@ -202,12 +202,10 @@ def _run_stages_3_to_7(
     # Stage 4: Fetch competitor articles
     banner("Stage 4 / 7 — Fetching competitor articles")
     competitor_data = fetch_competitors(keyword_data, domain=domain)
-    print(f"  Competitors fetched: {len(competitor_data)}")
 
     # Stage 5: NeuronWriter
     banner("Stage 5 / 7 — NeuronWriter NLP terms")
     nlp_terms = get_nlp_terms(keyword_data)
-    print(f"  Status: {nlp_terms['note']}")
 
     # Stage 6: Generate brief
     banner("Stage 6 / 7 — Generating content brief (Output 1)")
