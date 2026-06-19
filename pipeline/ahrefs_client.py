@@ -663,7 +663,7 @@ def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tup
                     primary_kw = candidate
             elif line.startswith("MISMATCH FLAG:"):
                 flag_text = line.split(":", 1)[1].strip()
-        except Exception:
+    except Exception:
         pass
 
     return {
