@@ -85,8 +85,13 @@ code { background: var(--bg2) !important; color: var(--ac) !important;
 }
 .stButton > button[kind="primary"] {
   background: var(--ac) !important;
-  color: #0b1112 !important;
+  color: #000000 !important;
   border: none !important;
+}
+.stButton > button[kind="primary"] p,
+.stButton > button[kind="primary"] span,
+.stButton > button[kind="primary"] div {
+  color: #000000 !important;
 }
 .stButton > button[kind="primary"]:hover { filter: brightness(1.12) !important; }
 .stButton > button[kind="primary"]:disabled {
