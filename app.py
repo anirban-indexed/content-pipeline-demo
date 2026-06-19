@@ -28,8 +28,9 @@ st.markdown("""<style>
   --bg2:   #0f1c1c;
   --bg3:   #132525;
   --bd:    #1e3535;
-  --ac:    #3dd9d0;
-  --acd:   rgba(61,217,208,.12);
+  --ac:    #1ab8b0;
+  --ac-hi: #22d4cb;
+  --acd:   rgba(26,184,176,.14);
   --t:     #ffffff;
   --m:     #8faaa8;
   --s:     #4a6866;
@@ -366,9 +367,9 @@ st.markdown("""
      padding:1.2rem 0 1.1rem;border-bottom:1px solid #1e3535;margin-bottom:2rem;">
   <span style="font-size:1.4rem;font-weight:900;letter-spacing:-.03em;
                color:#fff;font-family:system-ui;">INDEXED</span>
-  <span style="background:rgba(61,217,208,.1);color:#3dd9d0;font-size:.65rem;
+  <span style="background:rgba(26,184,176,.1);color:#1ab8b0;font-size:.65rem;
                font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-               padding:.2rem .75rem;border:1px solid rgba(61,217,208,.3);
+               padding:.2rem .75rem;border:1px solid rgba(26,184,176,.3);
                border-radius:100px;">Content Pipeline</span>
   <span style="flex:1;"></span>
   <span style="color:#4a6866;font-size:.78rem;">Automated brief &amp; article generation</span>
@@ -386,10 +387,10 @@ client_cols = st.columns(len(CLIENTS))
 for col, (key, (label, icon, desc, flow)) in zip(client_cols, CLIENTS.items()):
     with col:
         is_sel = (st.session_state.client == key)
-        bd  = "#3dd9d0"               if is_sel else "#1e3535"
-        bg  = "rgba(61,217,208,.07)"  if is_sel else "#0f1c1c"
+        bd  = "#1ab8b0"               if is_sel else "#1e3535"
+        bg  = "rgba(26,184,176,.07)"  if is_sel else "#0f1c1c"
         tc  = "#ffffff"               if is_sel else "#8faaa8"
-        dc  = "#3dd9d0"               if is_sel else "#4a6866"
+        dc  = "#1ab8b0"               if is_sel else "#4a6866"
         st.markdown(f"""
         <div style="background:{bg};border:1px solid {bd};border-radius:12px;
                     padding:.85rem .75rem;margin-bottom:.4rem;min-height:76px;">
