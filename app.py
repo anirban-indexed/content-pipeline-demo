@@ -352,21 +352,25 @@ def _dl_btn(path: Path, label: str):
         )
 
 # ── Sidebar — stage tracker ───────────────────────────────────────────────────
+def _render_stages(placeholder, cur: int, is_running: bool):
+    lines = []
+    for i, stage in enumerate(PIPELINE_STAGES, 1):
+        if is_running and i == cur:
+            lines.append(f"**→ {stage}**")
+        elif cur > i:
+            lines.append(f"<span style='color:#4a6866'>✓ {stage}</span>")
+        else:
+            lines.append(f"<span style='color:#4a6866'>· {stage}</span>")
+    placeholder.markdown("\n\n".join(lines), unsafe_allow_html=True)
+
 with st.sidebar:
     st.markdown("""<div style="padding:.5rem 0 1rem;">
       <span style="font-size:1.1rem;font-weight:900;letter-spacing:-.02em;color:#fff;">INDEXED</span>
     </div>""", unsafe_allow_html=True)
     st.caption("PIPELINE STAGES")
     st.markdown('<div style="height:.25rem"></div>', unsafe_allow_html=True)
-
-    cur = st.session_state.stage_num
-    for i, stage in enumerate(PIPELINE_STAGES, 1):
-        if st.session_state.is_running and i == cur:
-            st.markdown(f"**→ {stage}**")
-        elif cur > i:
-            st.caption(f"✓ {stage}")
-        else:
-            st.caption(f"· {stage}")
+    _stage_ph = st.empty()
+    _render_stages(_stage_ph, st.session_state.stage_num, st.session_state.is_running)
 
     if st.session_state.last_name:
         st.divider()
@@ -519,6 +523,7 @@ if generate and run_args and not st.session_state.is_running:
             if m:
                 n, tot, name = int(m.group(1)), int(m.group(2)), m.group(3).strip()
                 st.session_state.stage_num = n
+                _render_stages(_stage_ph, n, True)
                 pbar.progress((n - 1) / tot, text=f"Stage {n}/{tot} — {name}")
                 continue
 
@@ -534,6 +539,7 @@ if generate and run_args and not st.session_state.is_running:
 
         elapsed = time.time() - start
         pbar.progress(1.0, text="Complete")
+        _render_stages(_stage_ph, len(PIPELINE_STAGES) + 1, False)
 
         art_found = _latest_output(client_key, "article")
         if err_lines and not art_found:
