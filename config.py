@@ -12,7 +12,7 @@ load_dotenv(override=True)
 
 # Anthropic
 ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
-ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
+ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
 
 # Ahrefs
 AHREFS_API_KEY: str = os.getenv("AHREFS_API_KEY", "")
