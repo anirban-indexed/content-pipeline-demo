@@ -62,7 +62,7 @@ Follow these rules exactly when writing every sentence.
 
 **Sentence and paragraph structure:**
 - Mix short declarative sentences with slightly longer explanatory ones. Avoid monotonous paragraph rhythm.
-- Paragraphs must be 3–5 sentences. Never write a paragraph longer than 5 sentences. Single-sentence paragraphs are acceptable sparingly for structural emphasis.
+- Paragraphs must be 2–3 sentences. Never write a paragraph longer than 3 sentences. Single-sentence paragraphs are acceptable sparingly for structural emphasis.
 - Each paragraph must connect logically to the one before it.
 
 **Article structure (mandatory sequence):**
@@ -160,7 +160,7 @@ Every article must follow this exact structure:
 - Supporting articles must always include a link to their cluster pillar page. If the content plan specifies a pillar URL, that link is mandatory and must be placed in the first third of the article body.
 
 **Prohibited words and phrases:**
-- No em-dashes. Use an en-dash with spaces ( – ) or restructure with a comma.
+- No em dashes (—) or en dashes (–). Break the thought with a period, comma, or semi-colon. Never use any dash character in prose.
 - No exclamation marks anywhere.
 - Never use "impact" as a verb. Use "affect", "influence", or "change".
 - Never use: "it's worth noting", "it is important to understand", "in conclusion", "furthermore", "moreover", "delve", "comprehensive", "crucial", "showcasing", "let's explore", "game-changer", "multifaceted", "nuanced", "it is essential", "leveraging", "robust", "seamless", "holistic", "cutting-edge", "best-in-class", "world-class", "click here".

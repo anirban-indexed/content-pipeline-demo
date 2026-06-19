@@ -24,7 +24,7 @@ Follow these rules exactly when writing every sentence.
 
 **Sentence and paragraph structure:**
 - Mix short declarative sentences with slightly longer explanatory ones. Avoid paragraphs where every sentence is the same length or structure.
-- Paragraphs must be 2-4 sentences. Never write a paragraph longer than 4 sentences. Never write a single-sentence paragraph except for deliberate structural emphasis, used sparingly.
+- Paragraphs must be 2-3 sentences. Never write a paragraph longer than 3 sentences. Never write a single-sentence paragraph except for deliberate structural emphasis, used sparingly.
 - The intro and conclusion must each be broken into separate paragraphs of no more than 3-4 sentences. A wall of text spanning 5+ sentences with no break is a formatting failure.
 - Each paragraph must connect logically to the one before it. Never write consecutive paragraphs that each make isolated standalone points with no logical connection.
 - Sections should be 3-5 paragraphs, not counting any bullets within them.
@@ -40,7 +40,7 @@ Follow these rules exactly when writing every sentence.
 - Do not state that a technology "works well for" an industry without naming the specific condition that makes it appropriate. Assertions without specifications are not useful to the reader.
 
 **Prohibited words and phrases:**
-- No em dashes anywhere. Use a comma or restructure the sentence.
+- No em dashes (—) or en dashes (–) anywhere. Use a period, comma, or semi-colon instead.
 - Never use: "it's worth noting," "it's important to understand," "in conclusion," "furthermore," "moreover," "delve," "comprehensive," "crucial," "showcasing," "let's explore," "game-changer," "multifaceted," "nuanced," "key takeaway," "it is essential," "leveraging," "robust."
 - Oxford comma required in all lists: "a, b, and c."
 - Spell out abbreviations on first use: "relative humidity (RH)," "electrostatic discharge (ESD)," "heating, ventilation, and air conditioning (HVAC)."

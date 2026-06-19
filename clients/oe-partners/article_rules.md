@@ -36,7 +36,7 @@ Follow these rules exactly when writing every sentence.
 
 **Sentence and paragraph structure:**
 - Mix short declarative sentences with slightly longer explanatory ones. Avoid paragraphs where every sentence is the same length.
-- Paragraphs must be 3-5 sentences. Never write a paragraph longer than 5 sentences. A single-sentence paragraph is only acceptable for structural emphasis, used very sparingly.
+- Paragraphs must be 2-3 sentences. Never write a paragraph longer than 3 sentences. A single-sentence paragraph is only acceptable for structural emphasis, used very sparingly.
 - Each paragraph must connect logically to the one before it. No isolated standalone paragraphs.
 - The intro and conclusion must each be broken into separate paragraphs. A wall of 5+ sentences with no paragraph break is a formatting failure.
 
@@ -120,6 +120,6 @@ Every article must follow this structure:
 - No internal links in the FAQ section or the Let's Recap section.
 
 **Prohibited words and phrases:**
-- No em dashes anywhere. Use a comma or restructure the sentence.
+- No em dashes (—) or en dashes (–) anywhere. Use a period, comma, or semi-colon instead.
 - Never use: "it's worth noting," "it is important to understand," "in conclusion," "furthermore," "moreover," "delve," "comprehensive," "crucial," "showcasing," "let's explore," "game-changer," "multifaceted," "nuanced," "key takeaway" (use "Key Takeaways" as the section header only), "it is essential," "leveraging," "robust," "seamless," "holistic," "cutting-edge," "best-in-class," "world-class."
 - Never use "Lean Six Sigma" as a buzzword without substance. Every use must be tied to a specific capability, methodology, or outcome.

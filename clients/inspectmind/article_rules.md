@@ -47,13 +47,13 @@ These must never appear anywhere in the output:
 - "it's important to note that"
 - "it is worth mentioning"
 - "with that said"
-- Em dashes (—). Use an en dash with spaces ( – ) or restructure with a comma or full stop. Applies everywhere: body, meta descriptions, table cells, headings.
+- No em dashes (—) or en dashes (–). Restructure with a comma, full stop, or two sentences. Applies everywhere: body, meta descriptions, table cells, headings.
 
 ## Sentence and Paragraph Structure
 
 - Mix short declarative statements with longer explanatory sentences. Do not write five sentences of equal length in a row.
 - Lead each section with stakes (consequence or constraint) before mechanics. One sentence of stakes, then explain the mechanism.
-- Paragraphs: 3–5 sentences for body text. Single-sentence paragraphs are acceptable sparingly for structural emphasis (e.g., a key conclusion that needs its own line).
+- Paragraphs: 2–3 sentences for body text. Never more than 3 sentences. Single-sentence paragraphs are acceptable sparingly for structural emphasis (e.g., a key conclusion that needs its own line).
 - Do not write "etc." — if the list needs more items, name them; if it doesn't, end the list.
 - Never use semicolons in running text. Restructure as two sentences.
 

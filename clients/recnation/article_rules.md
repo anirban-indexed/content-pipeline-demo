@@ -28,7 +28,7 @@ Then the H1 and article body follow.
 
 **Sentence and paragraph structure:**
 - Mix short declarative sentences with slightly longer explanatory ones. Vary structure.
-- Paragraphs: 2-4 sentences. Never a wall of text.
+- Paragraphs: 2-3 sentences. Never more than 3 sentences. Never a wall of text.
 - Each paragraph must connect to the one before it. No isolated standalone points stacked in sequence.
 - Sections: 3-5 paragraphs, not counting bullets or tables within them.
 
@@ -70,7 +70,7 @@ The closing paragraph must: name "RecNation" explicitly, include a [HYPERLINK:] 
 - "seamless", "game-changer", "leverage", "it goes without saying", "at the end of the day"
 - "dive deep", "dive into", "let's explore"
 - "In today's fast-paced world", "more important than ever", "crucial", "essential" (as an adjective for abstract concepts)
-- Em dashes. Use a comma or restructure the sentence.
+- No em dashes (—) or en dashes (–). Use a period, comma, or semi-colon instead.
 - Oxford comma required in all lists: "a, b, and c."
 
 **Abbreviations:**

@@ -26,7 +26,7 @@ Follow these rules exactly when writing every sentence:
 - Tables are encouraged to summarise comparisons and timelines.
 - Embed external links mid-sentence on specific factual claims,
   not at the end of paragraphs.
-- Paragraphs must be 2-3 sentences. Hard maximum: 4 sentences per paragraph
+- Paragraphs must be 2-3 sentences. Hard maximum: 3 sentences per paragraph
   in any section. Never use single-sentence paragraphs except for deliberate
   emphasis, used sparingly.
 - INTRO AND CONCLUSION DENSITY: The intro and conclusion sections must each
@@ -38,7 +38,7 @@ Follow these rules exactly when writing every sentence:
   body copy for natural variation. Never use "pot", "stoner", or "black market".
 - Spell out all abbreviations on first use: "tetrahydrocannabinol (THC)",
   "cannabidiol (CBD)", "cannabinol (CBN)", "tetrahydrocannabinolic acid (THCA)".
-- No em dashes (—). Use commas or restructure the sentence.
+- No em dashes (—) or en dashes (–). Use a period, comma, or semi-colon instead.
 - Oxford comma required: "a, b, and c".
 - Never use these phrases: "it's worth noting", "it's important to understand",
   "in conclusion", "furthermore", "moreover", "delve", "comprehensive", "crucial",

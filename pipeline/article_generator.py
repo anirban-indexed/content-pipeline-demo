@@ -551,13 +551,13 @@ def _run_qa_check(
 
 Voice:
 - Conversational but credible. Plain language. Second person ("you") throughout.
-- Short paragraphs: 2-3 sentences ideal, maximum 5 sentences.
+- Short paragraphs: 2-3 sentences. Hard maximum: 3 sentences per paragraph. Never 4 or more.
 - Cause-and-effect connections explained simply, not academically.
 - Helpful and informative. Not robotic or mechanical.
 - Down-to-earth tone. Never stiff or corporate.
 
 Style rules:
-- No em dashes (—). Flag every occurrence.
+- No em dashes (—) or en dashes (–). Use a period, comma, or semi-colon instead. Flag every dash occurrence.
 - Oxford comma required in lists of three or more.
 - "Cannabis" preferred over "weed" or "marijuana" in body copy.
 - No slang: no "stoner", "pot", "black market", "getting high" in medical context.
@@ -627,7 +627,7 @@ separately by a pre-check and do not need to be flagged here.
 9. WORD COUNT: Estimate the article word count. Is it within the brief's recommended range?
 10. SECTIONS TO CHANGE: Were all sections in the brief's Sections to Change addressed?
 11. SECTIONS TO ADD: Were all new sections in the brief present and placed correctly?
-12. EM DASHES: Flag any em dashes (—) found in the article body paragraphs. Do NOT flag em dashes in headings derived from the content plan title.
+12. EM/EN DASHES: Flag any em dashes (—) or en dashes (–) found in the article body paragraphs. They must be replaced with a period, comma, or semi-colon. Do NOT flag dashes in headings derived from the content plan title.
 13. AI PHRASES: Flag any AI-sounding phrases from the voice standards list above found in BODY PARAGRAPHS ONLY. Do not flag words that appear in H1, H2, H3 headings, or the metadata table — headings come from the content plan and are not generated prose. Only flag body paragraph occurrences.
 14. PARAGRAPH LENGTH: Flag any sections with excessive single-sentence paragraphs.
 15. ABBREVIATIONS: Flag any technical abbreviations that were not spelled out on first use in body copy (relevant to the client's industry — ignore cannabis-specific abbreviations for non-cannabis clients).
@@ -808,6 +808,7 @@ def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_repor
     _prev_was_numbered: bool = False      # was the previous non-empty line a numbered item?
     _prev_was_heading: bool = False      # was the previous non-empty line a heading?
     _prev_was_bullet: bool = False       # was the previous non-empty line a bullet item?
+    _last_bullet_para = None             # last bullet paragraph — used to set space_after on block exit
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
@@ -847,8 +848,9 @@ def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_repor
             continue
 
         if stripped.startswith("|") and stripped.endswith("|"):
-            if _prev_was_bullet:
-                doc.add_paragraph("")  # blank line after bullet block
+            if _prev_was_bullet and _last_bullet_para is not None:
+                _last_bullet_para.paragraph_format.space_after = Pt(10)
+                _last_bullet_para = None
             _prev_was_bullet = False
             _prev_was_heading = False
             table_lines = []
@@ -876,19 +878,23 @@ def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_repor
             continue
 
         if stripped.startswith("- ") or stripped.startswith("* "):
-            if not _prev_was_bullet and not _prev_was_heading:
-                doc.add_paragraph("")  # blank line before bullet block (body text → bullets only)
+            _is_first_bullet = not _prev_was_bullet and not _prev_was_heading
             _prev_was_heading = False
             _prev_was_bullet = True
             para = doc.add_paragraph(style="List Bullet")
             _apply_bullet_numbering(doc, para)
             _fill_formatted_paragraph(para, stripped[2:])
+            if _is_first_bullet:
+                para.paragraph_format.space_before = Pt(8)
+            para.paragraph_format.space_after = Pt(3)
+            _last_bullet_para = para
             i += 1
             continue
 
         if len(stripped) > 2 and stripped[0].isdigit() and stripped[1] in ".)":
-            if _prev_was_bullet:
-                doc.add_paragraph("")  # blank line after bullet block
+            if _prev_was_bullet and _last_bullet_para is not None:
+                _last_bullet_para.paragraph_format.space_after = Pt(10)
+                _last_bullet_para = None
             _prev_was_bullet = False
             _prev_was_heading = False
             # New list boundary: allocate a fresh numId so counting restarts at 1
@@ -896,6 +902,7 @@ def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_repor
                 _current_num_id = _new_numbered_list_id(doc)
             text_without_prefix = stripped[2:].lstrip()
             para = doc.add_paragraph(style="Normal")
+            para.paragraph_format.space_after = Pt(6)
             _fill_formatted_paragraph(para, text_without_prefix)
             _apply_numbered_list(para, _current_num_id)
             _prev_was_numbered = True
@@ -912,11 +919,13 @@ def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_repor
             )
 
         if "[HYPERLINK:" in stripped:
-            if _prev_was_bullet:
-                doc.add_paragraph("")  # blank line after bullet block
+            if _prev_was_bullet and _last_bullet_para is not None:
+                _last_bullet_para.paragraph_format.space_after = Pt(10)
+                _last_bullet_para = None
             _prev_was_bullet = False
             _prev_was_heading = False
             para = doc.add_paragraph()
+            para.paragraph_format.space_after = Pt(6)
             parts = stripped.split("[HYPERLINK:")
             if parts[0]:
                 para.add_run(parts[0])
@@ -941,11 +950,13 @@ def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_repor
             continue
 
         if stripped.startswith("**") and stripped.endswith("**") and stripped.count("**") == 2:
-            if _prev_was_bullet:
-                doc.add_paragraph("")  # blank line after bullet block
+            if _prev_was_bullet and _last_bullet_para is not None:
+                _last_bullet_para.paragraph_format.space_after = Pt(10)
+                _last_bullet_para = None
             _prev_was_bullet = False
             _prev_was_heading = False
             para = doc.add_paragraph(style="Normal")
+            para.paragraph_format.space_after = Pt(6)
             run = para.add_run(stripped.strip("**"))
             run.bold = True
             i += 1
@@ -956,18 +967,24 @@ def _parse_and_write_doc(article_text: str, url: str, output_path: str, qa_repor
         # a bullet block immediately after a heading+label still gets no blank paragraph.
         if stripped.startswith("*(") and stripped.endswith(")*"):
             para = doc.add_paragraph(style="Normal")
+            para.paragraph_format.space_after = Pt(4)
             run = para.add_run(stripped.strip("*"))
             run.italic = True
             i += 1
             continue
 
         # Plain body paragraph — close bullet block, then render normally
-        if _prev_was_bullet:
-            doc.add_paragraph("")  # blank line after bullet block
+        if _prev_was_bullet and _last_bullet_para is not None:
+            _last_bullet_para.paragraph_format.space_after = Pt(10)
+            _last_bullet_para = None
         _prev_was_bullet = False
         _prev_was_heading = False
         _add_formatted_paragraph(doc, stripped)
         i += 1
+
+    # Close any trailing bullet block
+    if _last_bullet_para is not None:
+        _last_bullet_para.paragraph_format.space_after = Pt(10)
 
     if qa_report:
         _append_qa_report(doc, qa_report)
