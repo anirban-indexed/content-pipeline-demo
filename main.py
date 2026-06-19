@@ -194,10 +194,18 @@ def _run_stages_3_to_7(
     # Stage 3: Ahrefs keyword research
     banner("Stage 3 / 7 — Ahrefs keyword research")
     keyword_data = run_keyword_research(article_data, profile=profile)
-    print(f"  Primary keyword : {keyword_data['primary_keyword']}")
-    print(f"  Search volume   : {keyword_data['primary_sv']}")
-    print(f"  KD              : {keyword_data['primary_kd']}")
-    print(f"  Secondary kws   : {len(keyword_data['secondary_keywords'])}")
+    _pk = keyword_data['primary_keyword']
+    _sv = keyword_data['primary_sv']
+    _kd = keyword_data['primary_kd']
+    _sec = len(keyword_data['secondary_keywords'])
+    if _pk:
+        print(f"  Primary keyword : {_pk}")
+    if _sv:
+        print(f"  Search volume   : {_sv}")
+    if _kd:
+        print(f"  KD              : {_kd}")
+    if _sec:
+        print(f"  Secondary kws   : {_sec}")
 
     # Stage 4: Fetch competitor articles
     banner("Stage 4 / 7 — Fetching competitor articles")
