@@ -87,8 +87,6 @@ def scrape_article(url: str, domain: str = "veriheal.com") -> dict:
             f"Word count is only {word_count} — page may be JavaScript-rendered. "
             "Please paste the article text manually."
         )
-    if len(headings) == 0:
-        print(f"WARNING: No H2/H3 headings found at {url} — verify this is correct.")
 
     return {
         "url": url,

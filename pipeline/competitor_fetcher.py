@@ -23,8 +23,7 @@ def _fetch_one(url: str) -> dict | None:
     try:
         response = requests.get(url, headers=HEADERS, timeout=15)
         response.raise_for_status()
-    except Exception as e:
-        print(f"  WARNING: Could not fetch {url}: {e}")
+    except Exception:
         return None
 
     soup = BeautifulSoup(response.text, "lxml")
@@ -40,7 +39,6 @@ def _fetch_one(url: str) -> dict | None:
     word_count = len(body_text.split())
 
     if word_count < 100:
-        print(f"  WARNING: {url} returned only {word_count} words — likely JS-rendered, skipping.")
         return None
 
     return {
@@ -59,18 +57,14 @@ def fetch_competitors(keyword_data: dict, domain: str = "veriheal.com") -> list[
     urls = keyword_data.get("top_competitor_urls", [])
 
     if not urls:
-        print("  No competitor URLs available — skipping.")
         return []
 
     competitors = []
     for url in urls[:5]:
         if domain in url:
-            print(f"  Skipping own-domain URL: {url}")
             continue
-        print(f"  Fetching competitor: {url}")
         result = _fetch_one(url)
         if result:
             competitors.append(result)
 
-    print(f"  Fetched {len(competitors)} competitor articles.")
     return competitors

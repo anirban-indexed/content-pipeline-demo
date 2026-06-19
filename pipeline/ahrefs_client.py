@@ -107,7 +107,6 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
 
     topic = _extract_topic(article_data)
     h1 = article_data.get("h1", "")
-    print(f"  Ahrefs topic: {topic}")
     today = date.today().isoformat()
 
     results = {
@@ -153,8 +152,6 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
                 if (set(k.get("keyword", "").lower().split()) - _trivial) & _ref_words
             ]
             _filtered = _before - len(keywords)
-            if _filtered > 0:
-                print(f"  Matching-terms: filtered {_filtered} off-topic candidate(s).")
 
             # Strip listicle keywords that start with a standalone integer
             # e.g. "5 medications you should never mix with magnesium"
@@ -166,14 +163,9 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
                 if not _re.match(r'^\d+\s', k.get("keyword", ""))
             ]
             _numeric_filtered = _before_numeric - len(keywords)
-            if _numeric_filtered > 0:
-                print(f"  Matching-terms: filtered {_numeric_filtered} "
-                      f"numeric listicle candidate(s).")
 
             # If filter leaves fewer than 2 candidates, skip to URL fallback
             if len(keywords) < 2:
-                print("  Matching-terms: fewer than 2 relevant candidates "
-                      "after filter — skipping to URL fallback.")
                 keywords = []
 
             # Ask Claude to pick the best primary from the top 5 candidates.
@@ -216,10 +208,8 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
                     )
                     if match:
                         primary = match
-                    else:
-                        print(f"  WARNING: Claude primary selection '{selected}' not in candidates — using top by volume.")
-                except Exception as e:
-                    print(f"  WARNING: Claude primary keyword selection failed — {e}")
+                except Exception:
+                    pass
 
                 results["primary_keyword"] = primary.get("keyword", topic)
                 results["primary_sv"] = primary.get("volume", 0)
@@ -235,8 +225,8 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
                 ]
                 print(f"  Primary keyword: {results['primary_keyword']} "
                       f"(SV: {results['primary_sv']}, KD: {results['primary_kd']})")
-    except Exception as e:
-        print(f"  WARNING: matching-terms failed — {e}")
+    except Exception:
+        pass
 
     # --- Fallback: URL organic keywords + Claude selection ---
     if not results["primary_keyword"]:
@@ -287,8 +277,8 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
                         r.get("title", "") for r in _organic
                         if domain not in r.get("link", "")
                     ][:5]
-            except Exception as _se:
-                print(f"  Intent check: Serper search failed — {_se}")
+            except Exception:
+                pass
 
         # Claude validates intent alignment
         _competitor_block = (
@@ -369,17 +359,10 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
 
         if _intent_verdict == "REJECT" and len(_intent_lines) > 1:
             _corrected_kw = _intent_lines[1]
-            print(f"  Intent check: REJECTED '{_current_kw}' — "
-                  f"replacing with '{_corrected_kw}'")
             results["primary_keyword"] = _corrected_kw
-        elif _intent_verdict == "REJECT":
-            print(f"  Intent check: REJECTED '{_current_kw}' — "
-                  f"no replacement suggested, keyword unchanged.")
-        else:
-            print(f"  Intent check: ACCEPTED '{_current_kw}'")
 
-    except Exception as e:
-        print(f"  Intent check: failed — {e} — keyword unchanged.")
+    except Exception:
+        pass
 
     # --- Related terms (supplement secondary cluster) ---
     try:
@@ -398,8 +381,8 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
                     "sv": k.get("volume", 0),
                     "kd": k.get("difficulty") or 0,
                 })
-    except Exception as e:
-        print(f"  WARNING: related-terms failed — {e}")
+    except Exception:
+        pass
 
     # --- Cannibalization check ---
     try:
@@ -419,8 +402,8 @@ def run_keyword_research(article_data: dict, profile: dict | None = None) -> dic
             and item.get("url", "")
         })
         results["cannibalization_urls"] = cannib_urls[:5]
-    except Exception as e:
-        print(f"  WARNING: cannibalization check failed — {e}")
+    except Exception:
+        pass
 
     # --- Slug assessment ---
     slug = article_data.get("url", "").rstrip("/").split("/")[-1]
@@ -521,9 +504,8 @@ def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tup
             }
             for k in r.get("keywords", [])
         ]
-        print(f"  Fallback Step 1: {len(step1_raw)} ranking keyword(s) found for URL.")
-    except Exception as e:
-        print(f"  Fallback Step 1: site-explorer/organic-keywords failed — {e}")
+    except Exception:
+        pass
 
     # STEP 4: Filter commercial / pricing / brand keywords
     n_raw = len(step1_raw)
@@ -532,8 +514,6 @@ def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tup
         if not _is_commercial(k.get("keyword", ""), brand_tokens)
     ]
     n_commercial_filtered = n_raw - len(after_commercial)
-    if n_commercial_filtered > 0:
-        print(f"  Fallback Step 4: filtered {n_commercial_filtered} commercial/brand keyword(s).")
 
     # Volume filter removed — position is the primary signal for URL
     # fallback candidates. Pages ranking for niche medical terms will
@@ -565,9 +545,6 @@ def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tup
         if (set(k.get("keyword", "").lower().split()) - _trivial) & _ref_words
     ]
     _intent_filtered = _before_intent - len(step1_candidates)
-    if _intent_filtered > 0:
-        print(f"  Fallback Step 4: filtered {_intent_filtered} "
-              f"intent-mismatched candidate(s).")
 
     if step1_candidates:
         # Claude framing validation: check the top candidate's
@@ -611,25 +588,15 @@ def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tup
             _verdict = _val_lines[0].upper() if _val_lines else "ACCEPT"
 
             if _verdict == "REJECT":
-                # Try next candidate first before using Claude suggestion
                 if len(step1_candidates) > 1:
                     primary_kw = step1_candidates[1].get("keyword", "")
-                    print(f"  Fallback Step 4: Claude rejected top candidate — "
-                          f"trying next: '{primary_kw}'")
                 elif len(_val_lines) > 1:
                     primary_kw = _val_lines[1]
-                    print(f"  Fallback Step 4: Claude rejected top candidate — "
-                          f"using Claude suggestion: '{primary_kw}'")
                 else:
-                    print(f"  Fallback Step 4: Claude rejected top candidate — "
-                          f"no alternative, falling through to slug derivation.")
                     primary_kw = None
-            else:
-                print(f"  Fallback Step 4: Claude accepted '{primary_kw}'")
 
-        except Exception as e:
-            print(f"  Fallback Step 4: Claude validation failed — {e} "
-                  f"— using top candidate as-is.")
+        except Exception:
+            pass
 
         if primary_kw:
             top_kw_obj = next(
@@ -637,10 +604,6 @@ def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tup
                  if k.get("keyword") == primary_kw),
                 step1_candidates[0]
             )
-            print(f"  Fallback primary (URL ranking): {primary_kw} "
-                  f"(position {top_kw_obj.get('position', 'N/A')}, "
-                  f"SV: {top_kw_obj.get('volume', 0)}, "
-                  f"KD: {top_kw_obj.get('difficulty') or 0})")
             return {
                 "primary_keyword": primary_kw,
                 "primary_sv": top_kw_obj.get("volume", 0),
@@ -656,17 +619,8 @@ def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tup
                 ],
             }
 
-        # Claude rejected and no alternative found — fall through
-        # to Steps 2 & 3 slug derivation
-        print("  Fallback Step 4: falling through to slug derivation.")
-
-    # All candidates filtered — fall through to Steps 2 & 3
-    print("  Fallback Step 4: no intent-matched candidates — "
-          "falling through to slug derivation.")
-
     # STEP 2: Slug phrase (Step 1 returned nothing usable)
     slug_phrase = _extract_slug_phrase(article_data)
-    print(f"  Fallback Step 2: slug phrase — '{slug_phrase}'")
 
     # STEP 3: Claude selects best primary keyword
     candidates_text = (
@@ -709,12 +663,9 @@ def _run_url_fallback_research(article_data: dict, today: str, brand_tokens: tup
                     primary_kw = candidate
             elif line.startswith("MISMATCH FLAG:"):
                 flag_text = line.split(":", 1)[1].strip()
-                if not flag_text.lower().startswith("no"):
-                    print(f"  Fallback Step 3 MISMATCH: {flag_text}")
-    except Exception as e:
-        print(f"  Fallback Step 3: Claude selection failed — {e}")
+        except Exception:
+        pass
 
-    print(f"  Fallback primary (Claude-derived): {primary_kw} (SV: 0, KD: unknown)")
     return {
         "primary_keyword": primary_kw,
         "primary_sv": 0,
@@ -736,7 +687,6 @@ def _serper_competitor_urls(
     """
     _blocked = blocked_domains if blocked_domains is not None else _DEFAULT_BLOCKED_DOMAINS
     if not config.SERPER_API_KEY:
-        print("  WARNING: No Serper API key — skipping competitor URL lookup.")
         return []
     try:
         import requests as _requests
@@ -759,10 +709,8 @@ def _serper_competitor_urls(
             urls.append(url)
             if len(urls) >= n:
                 break
-        print(f"  Serper competitor URLs: {len(urls)} found for '{keyword}'")
         return urls
-    except Exception as e:
-        print(f"  WARNING: Serper competitor lookup failed — {e}")
+    except Exception:
         return []
 
 
