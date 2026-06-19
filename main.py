@@ -159,7 +159,6 @@ def run_content_plan_row(
         keyword = article_data.get("content_plan_primary_keyword") or article_data.get("primary_keyword", "unknown")
         tab = article_data.get("content_plan_tab", "")
         banner(f"{client_name.upper()} PIPELINE -- Row {row_num} ({tab}): {keyword}")
-        print(f"  Primary keyword  : {keyword}")
         print(f"  Topic            : {article_data.get('content_plan_topic', '')}")
         if article_data.get('content_plan_funnel'):
             print(f"  Funnel           : {article_data['content_plan_funnel']}")
