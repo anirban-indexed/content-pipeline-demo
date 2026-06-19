@@ -1,0 +1,157 @@
+{
+  "client_name": "InspectMind AI",
+  "domain": "inspectmind.ai",
+  "cta_contact_url": "https://www.inspectmind.ai/get-started",
+  "cta_pricing_url": "https://www.inspectmind.ai/pricing",
+  "input_type": "content_plan",
+  "react_spa": true,
+
+  "_note_no_external_links": "Checker pages (/checkers/*) and compare pages (/compare/*) must contain ZERO external links. AEC standards bodies (nfpa.org, ashrae.org, aia.org, asce.org, aci-int.org, aisc.org) are the only permitted external links for non-checker/compare pages.",
+
+  "no_external_links_url_patterns": [
+    "/checkers/",
+    "/compare/"
+  ],
+
+  "allowed_external_sources": [
+    "nfpa.org",
+    "ashrae.org",
+    "aia.org",
+    "asce.org",
+    "aci-int.org",
+    "aisc.org",
+    "ada.gov",
+    "access-board.gov",
+    "ibc.gov",
+    "osha.gov",
+    "dol.gov",
+    "cii.utexas.edu",
+    "wbdg.org",
+    "navigantconstruction.com",
+    "fmiglobal.com",
+    "hka.com",
+    "pubmed.ncbi.nlm.nih.gov",
+    "doi.org"
+  ],
+
+  "blocked_competitor_domains": [
+    "firmus.ai",
+    "civcheck.com",
+    "codecomply.com",
+    "planchecksolver.com",
+    "buildcheck.ai",
+    "procore.com",
+    "autodesk.com",
+    "bluebeam.com",
+    "getstructured.io",
+    "trunk-tools.ai",
+    "togal.ai",
+    "handoff.io",
+    "openspace.ai",
+    "doxel.ai",
+    "articulate.build",
+    "document-crunch.com",
+    "epermittech.com",
+    "eplansoft.com",
+    "geociviix.com",
+    "accela.com"
+  ],
+
+  "nlp_blocked_brands": [
+    "firmus", "civcheck", "codecomply", "planchecksolver", "buildcheck",
+    "procore", "autodesk", "bluebeam", "trunk tools", "togal", "openspace",
+    "doxel", "articulate", "document crunch"
+  ],
+
+  "abbreviation_map": [
+    ["AEC", "architecture, engineering, and construction"],
+    ["AHJ", "authority having jurisdiction"],
+    ["IBC", "International Building Code"],
+    ["CBC", "California Building Code"],
+    ["NEC", "National Electrical Code"],
+    ["IMC", "International Mechanical Code"],
+    ["IPC", "International Plumbing Code"],
+    ["NFPA", "National Fire Protection Association"],
+    ["ASHRAE", "American Society of Heating, Refrigerating and Air-Conditioning Engineers"],
+    ["ADA", "Americans with Disabilities Act"],
+    ["ASCE", "American Society of Civil Engineers"],
+    ["EOR", "engineer of record"],
+    ["GC", "general contractor"],
+    ["CM", "construction manager"],
+    ["MEP", "mechanical, electrical, and plumbing"],
+    ["RFI", "request for information"],
+    ["BIM", "building information modeling"],
+    ["DFU", "drainage fixture units"],
+    ["QA", "quality assurance"],
+    ["QC", "quality control"],
+    ["CD", "construction documents"],
+    ["DD", "design development"],
+    ["SD", "schematic design"],
+    ["GMP", "guaranteed maximum price"],
+    ["VE", "value engineering"],
+    ["ASI", "architect's supplemental instruction"],
+    ["CCD", "construction change directive"],
+    ["EOD", "engineer of design"],
+    ["PE", "professional engineer"],
+    ["FM", "FM Global"],
+    ["BOFU", "bottom of funnel"],
+    ["MOFU", "middle of funnel"],
+    ["TOFU", "top of funnel"]
+  ],
+
+  "disclaimers": [],
+
+  "gsc_site_url": "sc-domain:inspectmind.ai",
+
+  "outputs_dir": "outputs/inspectmind",
+  "inputs_dir": "inputs/inspectmind",
+
+  "context_files": {
+    "editorial_handbook": "",
+    "example_articles": [
+      "inputs/inspectmind/examples/engineer-of-record.docx",
+      "inputs/inspectmind/examples/ai-plan-check-vs-manual-qa.docx",
+      "inputs/inspectmind/examples/mep-plumbing-coordination.docx",
+      "inputs/inspectmind/examples/ai-plan-check-for-aec-firms.docx",
+      "inputs/inspectmind/examples/plan-review-software-for-aec-teams.docx",
+      "inputs/inspectmind/examples/compare-buildcheck-ai.docx",
+      "inputs/inspectmind/examples/compare-firmus-ai.docx",
+      "inputs/inspectmind/examples/compare-planchecksolver.docx"
+    ]
+  },
+
+  "content_plan": {
+    "excel_path": "inputs/inspectmind/InspectMind Content Plan.xlsx",
+    "active_tab": "Tools Content Plan",
+    "tabs": {
+      "Tools Content Plan": {
+        "col_primary_keyword": "Primary KW",
+        "col_topic": "Topic",
+        "col_url": "Target URLs",
+        "col_cluster": "Product",
+        "col_type": "Content Type",
+        "col_intent": "Sub Intent",
+        "col_funnel": "Funnel Stage",
+        "col_secondary_keywords": "Secondary KWs",
+        "col_search_volume": "KW SV (US monthly)",
+        "col_strategy_notes": "Notes",
+        "col_month": "Month",
+        "col_status": "Status"
+      },
+      "Supplementary Content": {
+        "col_primary_keyword": "Primary KW",
+        "col_topic": "Topic",
+        "col_url": "Target URLs",
+        "col_cluster": "Product",
+        "col_type": "Content Type",
+        "col_intent": "Sub Intent",
+        "col_funnel": "Funnel Stage",
+        "col_secondary_keywords": "Secondary KWs",
+        "col_search_volume": "KW SV (US Monthly)",
+        "col_strategy_notes": "Notes",
+        "col_month": "Month",
+        "col_status": "Status"
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "client_name": "Upvolt Energy",
+  "domain": "upvolt-energy.com",
+  "cta_contact_url": "https://upvolt-energy.com/get-a-quote/",
+  "input_type": "content_plan",
+  "blocked_competitor_domains": [],
+  "allowed_external_sources": [
+    "ofgem.gov.uk", "gov.uk", "ons.gov.uk", "parliament.uk", "nrel.gov",
+    "irena.org", "iea.org", "energy.gov", "cam.ac.uk", "ox.ac.uk",
+    "imperial.ac.uk", "ucl.ac.uk", "sciencedirect.com", "nature.com",
+    "science.org", "tandfonline.com", "pmc.ncbi.nlm.nih.gov",
+    "pubmed.ncbi.nlm.nih.gov", "carbonbrief.org", "energysavingtrust.org.uk",
+    "bbc.co.uk", "theguardian.com", "ft.com", "businessgreen.com",
+    "mcs.org.uk", "which.co.uk", "eta.co.uk", "theiet.org"
+  ],
+  "blocked_external_sources": [
+    "octopus.energy", "britishgas.co.uk", "ovo.com", "eonenergy.com",
+    "edfenergy.com", "scottishpower.co.uk", "goodenergy.co.uk",
+    "solarfast.co.uk", "theecoexperts.co.uk", "ecoexperts.co.uk",
+    "sunsave.co.uk", "greenmatch.co.uk", "checkatrade.com",
+    "solarguide.co.uk", "heatable.co.uk", "moneysupermarket.com",
+    "comparethemarket.com", "gocompare.com", "uswitch.com",
+    "energyguide.co.uk", "solar-trade.org.uk"
+  ],
+  "abbreviation_map": [
+    ["SEG", "Smart Export Guarantee"],
+    ["FiT", "Feed-in Tariff"],
+    ["MCS", "Microgeneration Certification Scheme"],
+    ["PPA", "Power Purchase Agreement"],
+    ["BUS", "Boiler Upgrade Scheme"],
+    ["EPC", "Energy Performance Certificate"],
+    ["DNO", "Distribution Network Operator"],
+    ["ASHP", "air source heat pump"],
+    ["GSHP", "ground source heat pump"],
+    ["EV", "electric vehicle"],
+    ["HEMS", "home energy management system"],
+    ["kWh", "kilowatt-hour"],
+    ["kWp", "kilowatt-peak"]
+  ],
+  "disclaimers": [],
+  "gsc_site_url": "sc-domain:upvolt-energy.com",
+  "outputs_dir": "outputs/upvolt",
+  "inputs_dir": "inputs/upvolt",
+  "context_files": {
+    "editorial_handbook": "",
+    "example_articles": [
+      "inputs/upvolt/examples/is-solar-worth-it-for-uk-businesses.docx",
+      "inputs/upvolt/examples/what-does-adding-more-panels-cost.docx",
+      "inputs/upvolt/examples/can-you-upgrade-your-solar-inverter.docx",
+      "inputs/upvolt/examples/should-you-add-new-panels-to-older-systems.docx",
+      "inputs/upvolt/examples/can-you-move-solar-panels.docx",
+      "inputs/upvolt/examples/do-export-rates-change-solar-roi.docx"
+    ]
+  },
+  "content_plan": {
+    "excel_path": "inputs/upvolt/Upvolt Content Plan 2025.xlsx",
+    "active_tab": "Blog Pages (NEW)",
+    "tabs": {
+      "Blog Pages (NEW)": {
+        "col_primary_keyword": "Article",
+        "col_topic": "Article",
+        "col_url": "Live URL",
+        "col_cluster": "Category",
+        "col_type": "Type",
+        "col_secondary_keywords": "Target Keywords",
+        "col_month": "Client Month",
+        "col_status": "Status",
+        "col_strategy_notes": "Notes"
+      },
+      "Landing Pages": {
+        "col_primary_keyword": "Keyword",
+        "col_topic": "Category",
+        "col_url": "Live URL",
+        "col_cluster": "Category",
+        "col_type": "Type",
+        "col_month": "Client Month",
+        "col_status": "Status"
+      }
+    }
+  }
+}

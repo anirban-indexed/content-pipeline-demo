@@ -1,0 +1,28 @@
+# RecNation Storage — Internal Link Pool
+# Format: - [Topic / Anchor Context] → [Full URL]
+# Verified from live site and example articles.
+# Add new blog articles as they are published.
+
+# --- SERVICE PAGES ---
+- ATV storage facilities → https://www.recnationstorage.com/atv-storage/
+- RV and boat storage → https://www.recnationstorage.com/rv-storage/
+- Truck and commercial vehicle parking → https://www.recnationstorage.com/truck-parking/
+- Carport and covered storage → https://www.recnationstorage.com/carport-storage/
+
+# --- BLOG ARTICLES: TRUCK CARRIER / COMMERCIAL ---
+- What is the role of a truck carrier in logistics → https://www.recnationstorage.com/blog/what-is-the-role-of-a-truck-carrier-in-logistics/
+- Transport carrier explained → https://www.recnationstorage.com/blog/transport-carrier-explained/
+- Truck carrier cargo handover explained → https://www.recnationstorage.com/blog/truck-carrier-cargo-handover-explained/
+- Types of truck carrier → https://www.recnationstorage.com/blog/types-of-truck-carrier/
+- Ultimate guide to truck carriers → https://www.recnationstorage.com/blog/truck-carriers-guide/
+- What licenses do truck carriers need → https://www.recnationstorage.com/blog/what-licenses-do-truck-carriers-need/
+
+# --- BLOG ARTICLES: ATV / POWERSPORTS ---
+- How to transfer ATV ownership → https://www.recnationstorage.com/blog/how-to-transfer-atv-ownership/
+
+# --- BLOG ARTICLES: CLASSIC CAR / COLLECTOR VEHICLE ---
+- Is it worth keeping a classic car → https://www.recnationstorage.com/blog/is-it-worth-keeping-a-classic-car/
+
+# --- BLOG ARTICLES: RV / BOAT STORAGE FACILITY ---
+- Best layout for RV and boat storage lot → https://www.recnationstorage.com/blog/best-layout-rv-boat-storage-lot/
+- Cost to build an RV and boat storage facility → https://www.recnationstorage.com/blog/cost-to-build-rv-boat-storage-facility/

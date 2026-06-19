@@ -1,0 +1,170 @@
+{
+  "client_name": "RecNation Storage",
+  "domain": "recnationstorage.com",
+  "cta_contact_url": "https://www.recnationstorage.com/storage/",
+  "input_type": "content_plan",
+
+  "writing_guidelines": {
+    "tone": "Professional yet conversational. Educational without being condescending. Practical and direct — gives the reader real answers, not vague guidance. Avoids fluff and filler sentences.",
+    "voice": "Second-person throughout ('you', 'your'). Authoritative but not corporate. Reads like a knowledgeable friend who owns a storage facility, not a salesperson.",
+    "style_notes": [
+      "Open with the core problem or question the reader is trying to solve — no generic landscape-setting intros.",
+      "Use H2/H3 hierarchy consistently. H2s are major topic shifts, H3s are sub-points within a section.",
+      "Use tables for comparisons (costs, regulations, options side-by-side). Use bullet points for lists of 3+ items.",
+      "Include a FAQ section at the end with 4–6 practical questions the reader would actually type into Google.",
+      "Cite external sources inline with links: municipal codes, state vehicle agencies, federal regulations (FMCSA, NHTSA), and industry data (J.D. Power, NMMA, ATVA). Link to the source directly.",
+      "Mention RecNation naturally within the body where storage is relevant — never as a hard sales push. Example: 'Facilities like RecNation offer covered and enclosed options for long-term storage.' Link to a relevant storage page.",
+      "American English. No UK spellings.",
+      "Word count: 2,000–3,500 words depending on topic breadth. Comprehensive coverage is expected.",
+      "No invented statistics. Use ranges or directional language if a precise figure is unavailable.",
+      "Articles must include a meta title, meta description (155 chars max), and excerpt at the top of the document — matching the format in the example articles."
+    ],
+    "banned_phrases": [
+      "In today's world",
+      "In today's fast-paced world",
+      "It's more important than ever",
+      "game-changer",
+      "seamless",
+      "At the end of the day",
+      "dive deep",
+      "leverage",
+      "it goes without saying"
+    ],
+    "cta_pattern": "Within the body, link to the relevant RecNation storage page once or twice where storage is a natural next step. Do not close the article with a hard CTA paragraph — let the content lead naturally to storage as a solution.",
+    "article_top_matter": "Every article must start with: Meta Title, Meta Description, Excerpt, Slug (if known), then the H1 and article body. Match the format of the example articles exactly."
+  },
+
+  "blocked_competitor_domains": [
+    "extraspace.com",
+    "cubesmart.com",
+    "publicstorage.com",
+    "sparefoot.com",
+    "storquest.com",
+    "uhaul.com",
+    "nsastorage.com",
+    "storagecafe.com",
+    "storagefront.com",
+    "iStorage.com",
+    "lifestorage.com",
+    "safeguardselfstorage.com",
+    "rvshare.com",
+    "outdoorsy.com",
+    "boattrader.com",
+    "rvtrader.com"
+  ],
+
+  "allowed_external_sources": [
+    "fmcsa.dot.gov",
+    "nhtsa.gov",
+    "dmv.org",
+    "usa.gov",
+    "irs.gov",
+    "sba.gov",
+    "census.gov",
+    "bls.gov",
+    "osha.gov",
+    "epa.gov",
+    "rvda.org",
+    "nmma.org",
+    "svia.org",
+    "atva.org",
+    "jdpower.com",
+    "nolo.com",
+    "kbb.com",
+    "nadaguides.com",
+    "camperguide.org",
+    "statista.com",
+    "insurance.com",
+    "progressive.com",
+    "getroadtrip.app",
+    "tdi.texas.gov"
+  ],
+
+  "blocked_external_sources": [
+    "extraspace.com",
+    "cubesmart.com",
+    "publicstorage.com",
+    "sparefoot.com",
+    "storquest.com",
+    "uhaul.com",
+    "rvshare.com",
+    "outdoorsy.com"
+  ],
+
+  "nlp_blocked_brands": [
+    "extra space storage",
+    "cubesmart",
+    "public storage",
+    "sparefoot",
+    "storquest",
+    "u-haul",
+    "life storage",
+    "ns&a storage",
+    "rv share",
+    "outdoorsy"
+  ],
+
+  "abbreviation_map": [
+    ["RV", "recreational vehicle"],
+    ["ATV", "all-terrain vehicle"],
+    ["UTV", "utility task vehicle"],
+    ["HOA", "homeowners association"],
+    ["FMCSA", "Federal Motor Carrier Safety Administration"],
+    ["USDOT", "United States Department of Transportation"],
+    ["MC", "Motor Carrier"],
+    ["CDL", "commercial driver's license"],
+    ["IFTA", "International Fuel Tax Agreement"],
+    ["IRP", "International Registration Plan"],
+    ["UCR", "Unified Carrier Registration"],
+    ["GVWR", "gross vehicle weight rating"],
+    ["PWC", "personal watercraft"],
+    ["VIN", "vehicle identification number"],
+    ["DMV", "Department of Motor Vehicles"],
+    ["CC&Rs", "covenants, conditions, and restrictions"]
+  ],
+
+  "disclaimers": [],
+  "skip_external_link_injection": true,
+
+  "gsc_site_url": "sc-domain:recnationstorage.com",
+
+  "outputs_dir": "outputs/recnation",
+  "inputs_dir": "inputs/recnation",
+
+  "context_files": {
+    "editorial_handbook": "",
+    "example_articles": [
+      "inputs/recnation/examples/how-to-transfer-atv-ownership.docx",
+      "inputs/recnation/examples/is-it-worth-keeping-a-classic-car.docx",
+      "inputs/recnation/examples/best-layout-rv-boat-storage-lot.docx",
+      "inputs/recnation/examples/cost-to-build-rv-boat-storage-facility.docx",
+      "inputs/recnation/examples/what-licenses-do-truck-carriers-need.docx",
+      "inputs/recnation/examples/ultimate-guide-to-truck-carriers.docx"
+    ]
+  },
+
+  "content_plan": {
+    "excel_path": "inputs/recnation/RecNation SEO Plan.xlsx",
+    "active_tab": "Blog SEO Content Plan",
+    "tabs": {
+      "Blog SEO Content Plan": {
+        "col_primary_keyword": "Article Keyword",
+        "col_topic": "Article Keyword",
+        "col_cluster": "Sub Category",
+        "col_role": "Column 1",
+        "col_url": "Live URL",
+        "col_status": "Status",
+        "col_month": "Client Month",
+        "col_secondary_keywords": "",
+        "col_search_volume": "",
+        "col_keyword_difficulty": "",
+        "col_traffic_potential": "",
+        "col_intent": "",
+        "col_funnel": "",
+        "col_type": "",
+        "col_landing_page": "",
+        "col_strategy_notes": ""
+      }
+    }
+  }
+}

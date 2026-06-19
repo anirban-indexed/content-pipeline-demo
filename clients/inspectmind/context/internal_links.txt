@@ -1,0 +1,133 @@
+# INSPECTMIND AI — INTERNAL LINK POOL
+# Format: Anchor suggestion | URL
+# Source: Sitemap (core + education) + content plan target URLs
+# Excludes: programmatic city/code/profession pages, case studies
+
+## Core / Product Pages
+AI plan check | https://www.inspectmind.ai/checkers/plan-check
+AI constructability review | https://www.inspectmind.ai/checkers/constructability
+AI architectural drawing review | https://www.inspectmind.ai/checkers/architectural
+AI structural drawing review | https://www.inspectmind.ai/checkers/structural
+AI civil drawing review | https://www.inspectmind.ai/checkers/civil
+AI mechanical drawing review | https://www.inspectmind.ai/checkers/mechanical
+AI electrical plan review | https://www.inspectmind.ai/checkers/electrical
+AI plumbing plan review | https://www.inspectmind.ai/checkers/plumbing
+fire and life safety checker | https://www.inspectmind.ai/checkers/fire-life-safety
+ADA compliance checker | https://www.inspectmind.ai/checkers/ada
+building codes checker | https://www.inspectmind.ai/checkers/building-codes
+survey drawing review | https://www.inspectmind.ai/checkers/survey
+shop drawing review | https://www.inspectmind.ai/checkers/shop-drawing
+spec vs drawing checker | https://www.inspectmind.ai/checkers/spec-drawing
+AI submittal review | https://www.inspectmind.ai/checkers/submittal
+MEP plan review | https://www.inspectmind.ai/checkers/mep-plan-review
+all AI drawing review checkers | https://www.inspectmind.ai/checkers
+construction drawing review | https://www.inspectmind.ai/construction-drawing-review
+
+## Solutions Pages
+solutions for architects and engineers | https://www.inspectmind.ai/solutions/architects-engineers
+solutions for general contractors | https://www.inspectmind.ai/solutions/contractors
+solutions for owners and developers | https://www.inspectmind.ai/solutions/owners-developers
+solutions for MEP and electrical engineers | https://www.inspectmind.ai/solutions/mep-electrical
+solutions for municipalities | https://www.inspectmind.ai/solutions/municipalities
+solutions for civil engineers | https://www.inspectmind.ai/solutions/civil-engineers
+GC preconstruction teams | https://www.inspectmind.ai/solutions/gc-preconstruction
+design-build teams | https://www.inspectmind.ai/solutions/design-build
+subcontractors | https://www.inspectmind.ai/solutions/subcontractors
+multifamily developers | https://www.inspectmind.ai/solutions/multifamily-developers
+land developers | https://www.inspectmind.ai/solutions/land-developers
+insurance carriers | https://www.inspectmind.ai/solutions/insurance-carriers
+
+## Use Case Pages
+RFI prevention | https://www.inspectmind.ai/use-cases/rfi-prevention
+bid document review | https://www.inspectmind.ai/use-cases/bid-document-review
+pre-GMP review | https://www.inspectmind.ai/use-cases/pre-gmp-review
+multifamily apartment plan review | https://www.inspectmind.ai/use-cases/multifamily-apartment-plan-review
+change order prevention | https://www.inspectmind.ai/use-cases/change-order-prevention
+addenda review | https://www.inspectmind.ai/use-cases/addenda-review
+land development | https://www.inspectmind.ai/use-cases/land-development
+commercial mixed-use coordination | https://www.inspectmind.ai/use-cases/commercial-mixed-use-coordination
+reducing change orders with AI | https://www.inspectmind.ai/use-cases/reducing-change-orders-with-ai
+shop drawing review use case | https://www.inspectmind.ai/use-cases/shop-drawing-review
+municipal building plan review | https://www.inspectmind.ai/use-cases/municipal-building-plan-review
+
+## Compare Pages
+InspectMind vs Procore | https://www.inspectmind.ai/compare/procore
+InspectMind vs Bluebeam | https://www.inspectmind.ai/compare/bluebeam
+InspectMind vs Firmus AI | https://www.inspectmind.ai/compare/firmus
+InspectMind vs PlanCheckSolver | https://www.inspectmind.ai/compare/planchecksolver
+InspectMind vs BuildCheck AI | https://www.inspectmind.ai/compare/buildcheck
+InspectMind vs manual review | https://www.inspectmind.ai/compare/manual-review
+best AI construction tools 2026 | https://www.inspectmind.ai/compare/best-ai-construction-tools-2026
+AI construction review comparison | https://www.inspectmind.ai/compare/ai-construction-review
+InspectMind vs UpCodes | https://www.inspectmind.ai/compare/upcodes
+InspectMind vs Autodesk | https://www.inspectmind.ai/compare/autodesk
+
+## Education Pages
+what is an RFI in construction | https://www.inspectmind.ai/education/what-is-an-rfi
+plan check vs plan review | https://www.inspectmind.ai/education/plan-check-vs-plan-review
+how to reduce plan check comments | https://www.inspectmind.ai/education/how-to-reduce-plan-check-comments
+what is MEP coordination | https://www.inspectmind.ai/education/what-is-mep-coordination
+what is constructability review | https://www.inspectmind.ai/education/what-is-constructability-review
+pre-construction QA | https://www.inspectmind.ai/education/pre-construction-qa
+drawing coordination process | https://www.inspectmind.ai/education/drawing-coordination-process
+QA vs QC in construction | https://www.inspectmind.ai/education/qa-vs-qc-construction
+what is construction QA/QC | https://www.inspectmind.ai/education/what-is-construction-qa-qc
+what is a change order | https://www.inspectmind.ai/education/what-is-a-change-order
+what is value engineering | https://www.inspectmind.ai/education/what-is-value-engineering
+what is an ASI in construction | https://www.inspectmind.ai/education/asi-construction
+what is GMP in construction | https://www.inspectmind.ai/education/gmp-construction
+what is CMU in construction | https://www.inspectmind.ai/education/cmu-construction
+engineer of record | https://www.inspectmind.ai/education/engineer-of-record
+what is a submittal | https://www.inspectmind.ai/education/what-is-submittal
+seismic design code compliance | https://www.inspectmind.ai/education/seismic-design-code-compliance
+healthcare hospital plan check | https://www.inspectmind.ai/education/healthcare-hospital-plan-check
+construction document conflict detection | https://www.inspectmind.ai/education/construction-document-conflict-detection
+
+## Resources / Articles
+true cost of construction rework | https://www.inspectmind.ai/resources/articles/true-cost-construction-rework
+spec vs drawing conflicts | https://www.inspectmind.ai/resources/articles/spec-vs-drawing-conflicts
+structural vs architectural coordination | https://www.inspectmind.ai/resources/articles/structural-vs-architectural-coordination
+MEP vs structural conflicts | https://www.inspectmind.ai/resources/articles/mep-vs-structural-conflicts
+NFPA compliance review | https://www.inspectmind.ai/resources/articles/nfpa-compliance-review
+fire alarm and sprinkler plan checking | https://www.inspectmind.ai/resources/articles/fire-protection-mep-coordination
+ADA accessibility compliance | https://www.inspectmind.ai/resources/articles/ada-accessibility-compliance
+pre-permit QA guide | https://www.inspectmind.ai/resources/articles/pre-permit-qa-guide
+AI vs offshore outsourcing for drawing review | https://www.inspectmind.ai/resources/articles/ai-vs-offshore-outsourcing
+why BIM clash detection is not enough | https://www.inspectmind.ai/resources/articles/why-bim-is-not-enough
+AI plan review at 30, 60, 90% design | https://www.inspectmind.ai/resources/articles/design-stage-review-guide
+high-volume submittal management | https://www.inspectmind.ai/resources/articles/high-volume-submittal-management
+contractor RFI reduction | https://www.inspectmind.ai/resources/articles/contractor-rfi-reduction
+developer guide to plan review | https://www.inspectmind.ai/resources/articles/developer-guide-plan-review
+why architects need AI for drawing review | https://www.inspectmind.ai/resources/articles/why-architects-need-ai
+civil drainage coordination | https://www.inspectmind.ai/resources/articles/civil-drainage-coordination
+insurance and litigation risk from drawing errors | https://www.inspectmind.ai/resources/articles/insurance-litigation-risk
+ADA compliance litigation | https://www.inspectmind.ai/resources/articles/ada-compliance-litigation
+submittals review | https://www.inspectmind.ai/resources/articles/submittals-review
+constructability review guide | https://www.inspectmind.ai/resources/articles/constructability-review-guide
+change order review | https://www.inspectmind.ai/resources/articles/change-order-review
+insurance carrier plan review automation | https://www.inspectmind.ai/resources/articles/insurance-carrier-plan-review-automation
+shop drawing review article | https://www.inspectmind.ai/resources/articles/submittal-review-workflow
+
+## Guides
+AI vs manual plan check guide | https://www.inspectmind.ai/resources/guides/ai-vs-manual-plan-check
+common drawing mistakes guide | https://www.inspectmind.ai/resources/guides/common-drawing-mistakes
+AI plan checking guide | https://www.inspectmind.ai/guides/ai-plan-checking
+
+## Product / Feature Pages
+how AI understands drawings | https://www.inspectmind.ai/how-ai-understands-drawings
+sample AI plan review report | https://www.inspectmind.ai/sample-report
+pricing | https://www.inspectmind.ai/pricing
+how it works | https://www.inspectmind.ai/how-it-works
+case studies library | https://www.inspectmind.ai/case-studies
+enterprise plan | https://www.inspectmind.ai/enterprise
+get started | https://www.inspectmind.ai/get-started
+permit risk reduction guarantee | https://www.inspectmind.ai/permit-risk-reduction-guarantee
+
+## Notable Case Studies (use for specific project references)
+Cold Summit Development — 47 issues cold storage | https://www.inspectmind.ai/case-studies/cold-steppe-153-issues
+Wichita Mystic Lakes — 36 structural issues | https://www.inspectmind.ai/case-studies/columbus-ohio-36-issues
+Carriger Road Sonoma — 47 structural issues | https://www.inspectmind.ai/case-studies/carriger-road-sonoma-ca-47-issues
+Duke Data Center — 28 issues | https://www.inspectmind.ai/case-studies/duke-data-center-28-issues
+healthcare facility structural | https://www.inspectmind.ai/case-studies/healthcare-facility-structural-159-issues
+K-12 school plan review | https://www.inspectmind.ai/case-studies/k12-msba-plan-review-375-issues
+transportation bridge QA | https://www.inspectmind.ai/case-studies/bna-conrac-a-cd-43-issues

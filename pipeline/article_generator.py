@@ -677,7 +677,7 @@ QA NOTES FOR EDITOR:
             continue
         if in_critical and stripped.startswith("-"):
             failure = stripped[1:].strip()
-            if failure.lower() != "none" and failure not in critical_failures:
+            if not failure.lower().startswith("none") and failure not in critical_failures:
                 critical_failures.append(failure)
 
     verdict = "FAIL" if critical_failures else "PASS"

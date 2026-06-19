@@ -1,0 +1,138 @@
+# OE PARTNERS INTERNAL LINK POOL
+# Format: [Page description] — [URL]
+# Claude: select only URLs topically relevant to the section being linked.
+# Only recommend URLs from this list. Do not invent or shorten URLs.
+
+## SERVICE / LANDING PAGES
+
+Business Transformation Consulting Australia — https://oepartners.com.au/business-transformation-consulting/
+Business Transformation Consulting Adelaide — https://oepartners.com.au/business-transformation-consulting-adelaide/
+Business Transformation Consulting Brisbane — https://oepartners.com.au/business-transformation-consulting-brisbane/
+Business Transformation Consulting Sydney — https://oepartners.com.au/business-transformation-consulting-sydney/
+Business Transformation Consulting Melbourne — https://oepartners.com.au/business-transformation-consulting-melbourne/
+Operational Excellence Consulting Australia — https://oepartners.com.au/operational-excellence-consulting/
+Operational Excellence Consulting Adelaide — https://oepartners.com.au/operational-excellence-consulting-adelaide/
+Operational Excellence Consulting Brisbane — https://oepartners.com.au/operational-excellence-consulting-brisbane/
+Operational Excellence Consulting Sydney — https://oepartners.com.au/operational-excellence-consulting-sydney/
+Operational Excellence Consulting Melbourne — https://oepartners.com.au/operational-excellence-consulting-melbourne/
+Continuous Improvement Consulting Australia — https://oepartners.com.au/continuous-improvement-consulting/
+Continuous Improvement Consulting Adelaide — https://oepartners.com.au/continuous-improvement-consulting-adelaide/
+Continuous Improvement Consulting Brisbane — https://oepartners.com.au/continuous-improvement-consulting-brisbane/
+Continuous Improvement Consulting Sydney — https://oepartners.com.au/continuous-improvement-consulting-sydney/
+Continuous Improvement Consulting Melbourne — https://oepartners.com.au/continuous-improvement-consulting-melbourne/
+Supply Chain Consulting Australia — https://oepartners.com.au/supply-chain-consulting/
+Supply Chain Consulting Adelaide — https://oepartners.com.au/supply-chain-consulting-adelaide/
+Supply Chain Consulting Brisbane — https://oepartners.com.au/supply-chain-consulting-brisbane/
+Supply Chain Consulting Sydney — https://oepartners.com.au/supply-chain-consulting-sydney/
+Supply Chain Consulting Melbourne — https://oepartners.com.au/supply-chain-consulting-melbourne/
+Lean Manufacturing Consulting Australia — https://oepartners.com.au/lean-manufacturing-consultanting-services-across-australia/
+Lean Manufacturing Consultant Adelaide — https://oepartners.com.au/lean-manufacturing-consultant-adelaide-south-australia/
+Lean Manufacturing Consultant Brisbane — https://oepartners.com.au/lean-manufacturing-consultant-brisbane-regional-queensland/
+Lean Manufacturing Consultant Sydney — https://oepartners.com.au/lean-manufacturing-consultants-sydney-regional-nsw/
+Lean Manufacturing Consultant Melbourne — https://oepartners.com.au/lean-manufacturing-consultants-melbourne-regional-victoria/
+Project Management Consulting Australia — https://oepartners.com.au/project-management-consulting/
+Project Management Consulting Adelaide — https://oepartners.com.au/project-management-consulting-adelaide/
+Project Management Consulting Brisbane — https://oepartners.com.au/project-management-consulting-brisbane/
+Project Management Consulting Sydney — https://oepartners.com.au/expert-project-management-consulting-in-sydney/
+Project Management Consulting Melbourne — https://oepartners.com.au/project-management-consulting-melbourne/
+Digital Transformation Consulting Australia — https://oepartners.com.au/digital-transformation-consulting/
+Digital Transformation Consultant Adelaide — https://oepartners.com.au/digital-transformation-consulting-adelaide/
+Digital Transformation Consultant Brisbane — https://oepartners.com.au/digital-transformation-consulting-brisbane/
+Digital Transformation Consultant Sydney — https://oepartners.com.au/digital-transformation-consulting-sydney/
+Digital Transformation Consultant Melbourne — https://oepartners.com.au/digital-transformation-consulting-melbourne/
+Data Analytics Consulting Australia — https://oepartners.com.au/data-analytics-consulting/
+Data Analytics Consultant Adelaide — https://oepartners.com.au/data-analytics-consulting-adelaide/
+Data Analytics Consultant Brisbane — https://oepartners.com.au/data-analytics-consulting-brisbane/
+Data Analytics Consultant Sydney — https://oepartners.com.au/data-analytics-consulting-sydney/
+Data Analytics Consultant Melbourne — https://oepartners.com.au/data-analytics-consulting-melbourne/
+Process Mapping Consulting Australia — https://oepartners.com.au/process-mapping-consulting/
+Process Mapping Consulting Adelaide — https://oepartners.com.au/process-mapping-consulting-adelaide/
+Process Mapping Consulting Brisbane — https://oepartners.com.au/process-mapping-consulting-brisbane/
+Process Mapping Consulting Sydney — https://oepartners.com.au/process-mapping-consulting-sydney/
+Process Mapping Consulting Melbourne — https://oepartners.com.au/process-mapping-consulting-melbourne/
+Value Stream Mapping Consulting Australia — https://oepartners.com.au/value-stream-mapping-consulting/
+Value Stream Mapping Consulting Adelaide — https://oepartners.com.au/value-stream-mapping-consulting-adelaide/
+Value Stream Mapping Consulting Brisbane — https://oepartners.com.au/value-stream-mapping-consulting-brisbane/
+Value Stream Mapping Consulting Sydney — https://oepartners.com.au/value-stream-mapping-consulting-sydney/
+Value Stream Mapping Consulting Melbourne — https://oepartners.com.au/value-stream-mapping-consulting-melbourne/
+
+## TRAINING AND CERTIFICATION PAGES
+
+Lean Six Sigma Training and Certification — https://oepartners.com.au/lean-six-sigma-training-and-certification/
+Lean Six Sigma Green Belt Certification — https://oepartners.com.au/product/lean-six-sigma-green-belt-certification/
+Lean Six Sigma Yellow Belt Certification — https://oepartners.com.au/product/lean-six-sigma-yellow-belt-certification/
+
+## BLOG ARTICLES (LIVE)
+
+Business Transformation: Four Pillars, Four R's, Practical Examples — https://oepartners.com.au/business-transformation-four-pillars/
+What does business transformation mean? — https://oepartners.com.au/what-does-business-transformation-mean/
+What are the four pillars of business transformation? — https://oepartners.com.au/what-are-the-four-pillars-of-business-transformation/
+What is an example of a business transformation process? — https://oepartners.com.au/example-of-a-business-transformation-process/
+What are the four R's of business transformation? — https://oepartners.com.au/what-are-the-four-rs-of-business-transformation/
+Operational Excellence Path: Stages, 5S, and Leadership Keys — https://oepartners.com.au/operational-excellence-path-stages-5s-and-leadership-keys/
+What are the four stages of operational excellence? — https://oepartners.com.au/what-are-the-four-stages-of-operational-excellence/
+What are the 5S in operational excellence? — https://oepartners.com.au/what-are-the-5s-in-operational-excellence/
+What are the three areas of operational excellence? — https://oepartners.com.au/what-are-the-three-areas-of-operational-excellence/
+What is key to operational excellence? — https://oepartners.com.au/what-is-key-to-operational-excellence/
+Continuous Improvement Guide: Principles, PDCA Cycle, and 5S — https://oepartners.com.au/continuous-improvement-guide-principles-pdca-cycle-and-5s/
+What is continuous improvement? — https://oepartners.com.au/what-is-continuous-improvement/
+What are the 5 key principles of continuous improvement? — https://oepartners.com.au/what-are-the-5-key-principles-of-continuous-improvement/
+What are the 5 steps of the continuous improvement process? — https://oepartners.com.au/what-are-the-5-steps-of-the-continuous-improvement-process/
+What are the 5 S's of continuous improvement? — https://oepartners.com.au/what-are-the-5ss-of-continuous-improvement/
+Supply Chain Management Guide: Functions, Steps, Examples — https://oepartners.com.au/supply-chain-management-guide/
+What does supply chain management do? — https://oepartners.com.au/what-does-supply-chain-management-do/
+What are the 5 main functions of supply chain management? — https://oepartners.com.au/the-5-main-functions-of-supply-chain-management/
+What are the 5 basic steps of supply chain management? — https://oepartners.com.au/the-5-basic-steps-of-supply-chain-management/
+What are the key issues of supply chain management? — https://oepartners.com.au/what-are-the-key-issues-of-supply-chain-management/
+Lean Manufacturing Basics: Principles, 5 C's, Kaizen, and 5M — https://oepartners.com.au/lean-manufacturing-basics/
+What are the 5 principles of lean manufacturing? — https://oepartners.com.au/what-are-the-five-principles-of-lean-manufacturing/
+What are the 5 C's of lean? — https://oepartners.com.au/what-are-the-5-cs-of-lean/
+What are the 3 C's of Kaizen? — https://oepartners.com.au/what-are-the-3-cs-of-kaizen/
+What are the 5 M's of lean manufacturing? — https://oepartners.com.au/what-are-the-5-ms-of-lean-manufacturing/
+Process Mapping 101: Types, Four Steps, Capability Levels — https://oepartners.com.au/process-mapping-101/
+What are the four steps of process mapping? — https://oepartners.com.au/what-are-the-four-steps-of-process-mapping/
+What are the 5 levels of process mapping? — https://oepartners.com.au/what-are-the-5-levels-of-process-mapping/
+What is meant by process mapping? — https://oepartners.com.au/what-is-meant-by-process-mapping/
+What are the three types of process maps? — https://oepartners.com.au/what-are-the-three-types-of-process-maps/
+Value Stream Mapping: Principles, Four Steps, Key Variants — https://oepartners.com.au/value-stream-mapping/
+What is meant by value stream mapping? — https://oepartners.com.au/what-is-meant-by-value-stream-mapping/
+What are the four steps of value stream mapping? — https://oepartners.com.au/what-are-the-four-steps-of-value-stream-mapping/
+What are the three types of VSM? — https://oepartners.com.au/what-are-the-three-types-of-value-stream-map/
+What are the five principles of value stream mapping? — https://oepartners.com.au/the-five-principles-of-value-stream-mapping/
+Project Management Guide: Methods, Tools, and Frameworks — https://oepartners.com.au/project-management-guide-methods-tools-and-frameworks/
+What are the 5 C's of project management? — https://oepartners.com.au/what-are-the-5-cs-of-project-management/
+What are the 4 P's of project management? — https://oepartners.com.au/what-are-the-4-ps-of-project-management/
+What is the rule of 7 in project management? — https://oepartners.com.au/what-is-the-rule-of-7-in-project-management/
+Types of Project Risks and How to Address Them — https://oepartners.com.au/types-of-project-risks-and-how-to-address-them/
+Digital Transformation Guide: Strategy, Tech, and Roadmaps — https://oepartners.com.au/digital-transformation-guide-strategy-tech-and-roadmaps/
+What are the 4 pillars of digital transformation? — https://oepartners.com.au/what-are-the-4-pillars-of-digital-transformation/
+What are the four types of digital transformation? — https://oepartners.com.au/what-are-the-four-types-of-digital-transformation/
+What are the 5 domains of digital transformation? — https://oepartners.com.au/what-are-the-5-domains-of-digital-transformation/
+Common barriers to digital transformation — https://oepartners.com.au/common-barriers-to-digital-transformation/
+Lean Six Sigma Certification: A Team Training Guide — https://oepartners.com.au/lean-six-sigma-certification-a-team-training-guide/
+Which Lean Six Sigma Certification Level Is Right? — https://oepartners.com.au/which-lean-six-sigma-certification-level-is-right/
+Do Your Teams Really Need Lean Certification? — https://oepartners.com.au/do-your-teams-really-need-lean-six-sigma-certification/
+How Lean Six Sigma Supports Ops Teams — https://oepartners.com.au/how-lean-six-sigma-supports-ops-teams/
+Lean Certification for Process Teams — https://oepartners.com.au/lean-six-sigma-certification-for-process-teams/
+Corporate Lean Training: In-House vs External — https://oepartners.com.au/corporate-lean-training-in-house-vs-external/
+Is Lean Training Worth It for Teams? — https://oepartners.com.au/is-lean-training-worth-it-for-teams/
+Lean Training for Emerging Team Leaders — https://oepartners.com.au/lean-training-for-emerging-team-leaders/
+Yellow Belt Certification: What It Means for Your Team — https://oepartners.com.au/yellow-belt-certification-what-it-means-for-your-team/
+What Does a Yellow Belt Do in a CI Project? — https://oepartners.com.au/what-does-a-yellow-belt-do-in-a-ci-project/
+How Yellow Belt Training Builds Team CI Capability — https://oepartners.com.au/how-yellow-belt-training-builds-team-ci-capability/
+Yellow Belt vs Green Belt: What's the Difference? — https://oepartners.com.au/yellow-belt-vs-green-belt-whats-the-difference/
+What Is DMAIC and How Do Yellow Belts Use It? — https://oepartners.com.au/what-is-dmaic-and-how-do-lean-six-sigma-yellow-belts-use-it/
+In-House Yellow Belt Training: Is It Right for Your Organisation? — https://oepartners.com.au/in-house-yellow-belt-training-is-it-right-for-your-organisation/
+How Much Time Does Yellow Belt Training Take? — https://oepartners.com.au/how-much-time-does-lean-six-sigma-yellow-belt-training-take/
+Choosing a Yellow Belt Training Provider: What to Look For — https://oepartners.com.au/choosing-a-lean-six-sigma-yellow-belt-training-provider/
+Green Belt Certification: Building Project Leaders — https://oepartners.com.au/green-belt-certification-building-project-leaders/
+How Green Belts Lead DMAIC Improvement Projects — https://oepartners.com.au/how-lean-six-sigma-green-belts-lead-dmaic-improvement-projects/
+Green Belt vs Black Belt: When to Develop Each — https://oepartners.com.au/green-belt-vs-black-belt-when-to-develop-each/
+Who Should Do Lean Six Sigma Green Belt Training? — https://oepartners.com.au/who-should-do-lean-six-sigma-green-belt-training/
+How to Put Green Belt Certification to Work — https://oepartners.com.au/how-to-put-lean-six-sigma-green-belt-certification-to-work/
+White Belt Certification: Building a Lean-Aware Workforce — https://oepartners.com.au/white-belt-certification-building-a-lean-aware-workforce/
+
+## CORE PAGES
+
+OE Partners homepage — https://oepartners.com.au/
+OE Partners contact page — https://oepartners.com.au/contact-us/
