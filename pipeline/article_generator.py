@@ -5,6 +5,7 @@ Includes add_hyperlink() for embedding live links directly in body copy.
 
 from __future__ import annotations
 import os
+import re
 import json
 from datetime import datetime
 from docx import Document

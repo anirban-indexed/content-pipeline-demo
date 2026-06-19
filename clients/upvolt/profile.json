@@ -57,7 +57,7 @@
     "active_tab": "Blog Pages (NEW)",
     "tabs": {
       "Blog Pages (NEW)": {
-        "col_primary_keyword": "Article",
+        "col_primary_keyword": "Target Keywords",
         "col_topic": "Article",
         "col_url": "Live URL",
         "col_cluster": "Category",

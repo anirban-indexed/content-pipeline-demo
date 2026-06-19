@@ -256,7 +256,13 @@ def _row_to_article_data(
     injected into brief/article prompts by brief_generator and article_generator.
     """
     primary_keyword = _get(row, col_map.get("col_primary_keyword", ""))
+    # If the keyword column has comma-separated values, take only the first
+    if "," in primary_keyword:
+        primary_keyword = primary_keyword.split(",")[0].strip()
     topic = _get(row, col_map.get("col_topic", ""))
+    # Fall back to topic title if primary keyword column is empty
+    if not primary_keyword:
+        primary_keyword = topic
 
     if not primary_keyword and not topic:
         primary_keyword = f"row-{row_number}"

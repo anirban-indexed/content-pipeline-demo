@@ -161,9 +161,12 @@ def run_content_plan_row(
         banner(f"{client_name.upper()} PIPELINE -- Row {row_num} ({tab}): {keyword}")
         print(f"  Primary keyword  : {keyword}")
         print(f"  Topic            : {article_data.get('content_plan_topic', '')}")
-        print(f"  Funnel           : {article_data.get('content_plan_funnel', 'N/A')}")
-        print(f"  Cluster          : {article_data.get('content_plan_cluster', 'N/A')}")
-        print(f"  Priority         : {article_data.get('content_plan_priority', 'N/A')}")
+        if article_data.get('content_plan_funnel'):
+            print(f"  Funnel           : {article_data['content_plan_funnel']}")
+        if article_data.get('content_plan_cluster'):
+            print(f"  Cluster          : {article_data['content_plan_cluster']}")
+        if article_data.get('content_plan_priority'):
+            print(f"  Priority         : {article_data['content_plan_priority']}")
         print(f"  NeuronWriter     : {'enabled' if config.NEURONWRITER_ENABLED else 'PENDING -- integration not live'}")
         if article_data.get("content_plan_strategy_notes"):
             print(f"  Strategy notes   : {article_data['content_plan_strategy_notes'][:120]}...")
